@@ -1,0 +1,8 @@
+train: train/images
+val: valid/images
+
+names: 
+  0: burn
+  1: crack
+  2: puncture
+  3: tear

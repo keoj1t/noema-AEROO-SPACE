@@ -1,0 +1,3934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOEMA | Black-Box Intelligence for Space Systems</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:wght@300;400;500;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #030712;
+      --bg-dark: #0a0f1f;
+      --bg-panel: rgba(12, 20, 36, 0.92);
+      --bg-overlay: rgba(8, 15, 30, 0.85);
+      --border-dim: rgba(64, 128, 255, 0.15);
+      --border-bright: rgba(100, 180, 255, 0.3);
+      --accent-cyan: #00f7ff;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-dim: #94a3b8;
+      --glow-cyan: 0 0 20px rgba(0, 247, 255, 0.4);
+      --glow-blue: 0 0 20px rgba(59, 130, 246, 0.3);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --glass-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(124, 144, 176, 0.03) 40%, rgba(6, 10, 20, 0.52));
+      --glass-bg-soft: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(120, 138, 170, 0.02) 35%, rgba(6, 10, 20, 0.44));
+      --glass-border: rgba(157, 178, 210, 0.24);
+      --glass-border-soft: rgba(145, 165, 196, 0.14);
+      --glass-highlight: rgba(255, 255, 255, 0.16);
+      --glass-shadow: 0 14px 34px rgba(2, 8, 23, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 247, 255, 0.6) var(--bg-dark);
+    }
+
+    html::-webkit-scrollbar {
+      width: 10px;
+    }
+    html::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+      border-radius: 5px;
+    }
+    html::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 5px;
+    }
+    html::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(0, 247, 255, 0.9), rgba(59, 130, 246, 0.9));
+    }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      color: var(--text-primary);
+      background-color: var(--bg-deep);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    
+    .cosmic-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      background: 
+        radial-gradient(1000px 700px at 8% 15%, rgba(140, 220, 255, 0.2) 0%, rgba(140, 220, 255, 0.02) 42%, transparent 70%),
+        radial-gradient(900px 620px at 88% 12%, rgba(86, 155, 255, 0.24) 0%, rgba(86, 155, 255, 0.05) 45%, transparent 72%),
+        radial-gradient(820px 600px at 50% 88%, rgba(72, 120, 255, 0.16) 0%, rgba(72, 120, 255, 0.03) 48%, transparent 75%),
+        linear-gradient(145deg, #030712 0%, #050b1a 42%, #020611 100%);
+      animation: auroraDrift 22s ease-in-out infinite alternate;
+    }
+
+    .cosmic-bg::before,
+    .cosmic-bg::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.45;
+    }
+
+    .cosmic-bg::before {
+      background:
+        radial-gradient(closest-side at 30% 20%, rgba(178, 241, 255, 0.22), transparent 74%),
+        radial-gradient(closest-side at 70% 72%, rgba(134, 167, 255, 0.18), transparent 78%);
+      filter: blur(24px);
+      animation: auroraPulse 14s ease-in-out infinite;
+    }
+
+    .cosmic-bg::after {
+      background:
+        radial-gradient(closest-side at 78% 32%, rgba(84, 218, 255, 0.18), transparent 76%),
+        radial-gradient(closest-side at 18% 68%, rgba(122, 143, 255, 0.15), transparent 76%);
+      filter: blur(30px);
+      animation: auroraPulse 18s ease-in-out infinite reverse;
+    }
+
+    
+    .constellations {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .constellation-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 10px rgba(148, 220, 255, 0.3));
+    }
+
+    .constellation-line {
+      stroke: rgba(155, 215, 255, 0.24);
+      stroke-width: 1.2;
+      stroke-linecap: round;
+      stroke-dasharray: 2 7;
+      animation: lineFlow 8s linear infinite;
+    }
+
+    .constellation-star {
+      fill: #dff4ff;
+      opacity: 0.95;
+      animation: starPulse 5s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .constellation-star.big {
+      filter: drop-shadow(0 0 8px rgba(191, 233, 255, 0.9));
+    }
+
+    .constellation-glow {
+      fill: rgba(123, 212, 255, 0.18);
+      animation: glowFloat 9s ease-in-out infinite alternate;
+    }
+
+    .glass-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .glass-orb {
+      position: absolute;
+      border-radius: 50%;
+      backdrop-filter: blur(10px) saturate(170%);
+      -webkit-backdrop-filter: blur(10px) saturate(170%);
+      border: 1px solid rgba(196, 233, 255, 0.26);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.32),
+        inset 0 -14px 24px rgba(99, 170, 255, 0.16),
+        0 18px 40px rgba(2, 8, 23, 0.45);
+      background:
+        radial-gradient(circle at 28% 18%, rgba(255,255,255,0.4), rgba(255,255,255,0.05) 46%, rgba(89,163,255,0.12) 72%, rgba(8,15,30,0.08));
+      filter: url(#liquidGlassDistort);
+      animation: orbDrift 20s ease-in-out infinite alternate;
+    }
+
+    .glass-orb.orb-a {
+      width: 220px;
+      height: 220px;
+      left: 8%;
+      top: 18%;
+      opacity: 0.5;
+    }
+
+    .glass-orb.orb-b {
+      width: 300px;
+      height: 300px;
+      right: 10%;
+      top: 12%;
+      opacity: 0.44;
+      animation-duration: 26s;
+    }
+
+    .glass-orb.orb-c {
+      width: 180px;
+      height: 180px;
+      right: 18%;
+      bottom: 11%;
+      opacity: 0.42;
+      animation-duration: 22s;
+    }
+
+    
+    .grid-lines {
+      display: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: min(1920px, 92vw);
+      margin: 0 auto;
+      padding: 24px max(20px, 2vw);
+    }
+
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.06) 50%, transparent 65%);
+      animation: shine 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .logo-text h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+
+    .logo-text .tagline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(8, 15, 30, 0.28));
+      border: 1px solid var(--glass-border-soft);
+      border-radius: var(--radius-md);
+      padding: 12px 20px;
+      color: var(--text-secondary);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px) saturate(170%);
+      -webkit-backdrop-filter: blur(12px) saturate(170%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.6s;
+    }
+
+    .nav-btn:hover::before {
+      left: 100%;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, rgba(187, 245, 255, 0.3), rgba(0, 247, 255, 0.08) 58%, rgba(8, 15, 30, 0.25));
+      border-color: rgba(157, 229, 255, 0.75);
+      color: var(--accent-cyan);
+      box-shadow: 0 10px 24px rgba(0, 247, 255, 0.25), inset 0 1px 0 rgba(255,255,255,0.34);
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(16, 185, 129, 0.12) 52%, rgba(8, 15, 30, 0.28));
+      border: 1px solid rgba(153, 246, 196, 0.42);
+      border-radius: var(--radius-md);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      backdrop-filter: blur(12px) saturate(165%);
+      -webkit-backdrop-filter: blur(12px) saturate(165%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    
+    .page {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    
+    .hero {
+      margin-bottom: 40px;
+    }
+
+    .hero-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      backdrop-filter: blur(22px) saturate(185%);
+      -webkit-backdrop-filter: blur(22px) saturate(185%);
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: -35%;
+      left: -20%;
+      width: 65%;
+      height: 70%;
+      background: radial-gradient(circle at center, var(--glass-highlight), transparent 72%);
+      transform: rotate(-12deg);
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, var(--text-primary), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: min(900px, 70ch);
+      margin-bottom: 30px;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .concept-card {
+      background: var(--glass-bg-soft);
+      border: 1px solid var(--glass-border-soft);
+      border-radius: var(--radius-md);
+      padding: 25px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(16px) saturate(165%);
+      -webkit-backdrop-filter: blur(16px) saturate(165%);
+      box-shadow: 0 10px 24px rgba(2, 8, 23, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .concept-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 30%, rgba(0, 247, 255, 0.05) 50%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .concept-card:hover::after {
+      opacity: 1;
+    }
+
+    .concept-card:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-5px);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .concept-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 247, 255, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      color: var(--accent-cyan);
+      font-size: 1.5rem;
+    }
+
+    .concept-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      color: var(--accent-cyan);
+    }
+
+    .concept-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .analysis-domains {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .domain-tab {
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border-soft);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(8, 15, 30, 0.26));
+      color: var(--text-secondary);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(12px) saturate(165%);
+      -webkit-backdrop-filter: blur(12px) saturate(165%);
+    }
+
+    .domain-tab:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .domain-tab.active {
+      border-color: rgba(157, 229, 255, 0.7);
+      color: var(--accent-cyan);
+      background: linear-gradient(135deg, rgba(177, 240, 255, 0.28), rgba(0, 247, 255, 0.08) 58%, rgba(8, 15, 30, 0.28));
+      box-shadow: 0 10px 24px rgba(0, 247, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    }
+
+    .analysis-domain {
+      display: none;
+    }
+
+    .analysis-domain.active {
+      display: block;
+      animation: fadeIn 0.35s ease;
+    }
+
+    @media (max-width: 1024px) {
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .panel-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .upload-zone {
+      border: 1px solid rgba(168, 216, 255, 0.45);
+      border-radius: var(--radius-md);
+      padding: 30px;
+      text-align: center;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(59, 130, 246, 0.08) 50%, rgba(8, 15, 30, 0.25));
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(14px) saturate(165%);
+      -webkit-backdrop-filter: blur(14px) saturate(165%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .upload-zone:hover {
+      border-color: rgba(157, 229, 255, 0.78);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(0, 247, 255, 0.11) 48%, rgba(8, 15, 30, 0.22));
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      color: var(--accent-cyan);
+      margin-bottom: 15px;
+    }
+
+    .file-info {
+      margin-top: 15px;
+      padding: 15px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.11), rgba(8, 15, 30, 0.26));
+      border: 1px solid var(--glass-border-soft);
+      border-radius: var(--radius-sm);
+      display: none;
+      backdrop-filter: blur(10px) saturate(155%);
+      -webkit-backdrop-filter: blur(10px) saturate(155%);
+    }
+
+    .file-info.active {
+      display: block;
+    }
+
+    .control-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .btn {
+      padding: 15px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(8, 15, 30, 0.28));
+      border: 1px solid var(--glass-border-soft);
+      color: var(--text-secondary);
+      backdrop-filter: blur(10px) saturate(150%);
+      -webkit-backdrop-filter: blur(10px) saturate(150%);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .progress-container {
+      margin-top: 20px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 3px;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    .results-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .report-id {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.9rem;
+      color: var(--accent-cyan);
+      background: rgba(0, 247, 255, 0.1);
+      padding: 8px 15px;
+      border-radius: var(--radius-md);
+    }
+
+    .analysis-output {
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 247, 255, 0.6) rgba(255,255,255,0.05);
+    }
+    .analysis-output::-webkit-scrollbar {
+      width: 8px;
+    }
+    .analysis-output::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+    .analysis-output::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 4px;
+    }
+    .analysis-output::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(0, 247, 255, 0.9), rgba(59, 130, 246, 0.9));
+    }
+
+    .scroll-panel {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 247, 255, 0.6) rgba(255,255,255,0.03);
+    }
+    .scroll-panel::-webkit-scrollbar {
+      width: 8px;
+    }
+    .scroll-panel::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.03);
+      border-radius: 4px;
+    }
+    .scroll-panel::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 4px;
+    }
+    .scroll-panel::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(0, 247, 255, 0.9), rgba(59, 130, 246, 0.9));
+    }
+
+    .visualization-area {
+      margin-top: 30px;
+    }
+
+    .viz-canvas {
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(8, 15, 30, 0.42));
+      border: 1px solid var(--glass-border-soft);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      backdrop-filter: blur(10px) saturate(160%);
+      -webkit-backdrop-filter: blur(10px) saturate(160%);
+    }
+
+    .viz-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .viz-btn {
+      padding: 8px 15px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .viz-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    
+    .status-bar {
+      display: flex;
+      gap: 15px;
+      padding: 15px;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .status-label {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .status-value {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .status-value.online {
+      color: var(--accent-green);
+    }
+
+    .status-value.offline {
+      color: var(--accent-red);
+    }
+
+    .status-value.processing {
+      color: var(--accent-yellow);
+    }
+
+    
+    .ai-assistant {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 380px;
+      max-height: 600px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .ai-assistant.collapsed {
+      height: 60px;
+    }
+
+    .ai-header {
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(0, 247, 255, 0.1), rgba(59, 130, 246, 0.1));
+      border-bottom: 1px solid var(--border-dim);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ai-body {
+      height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ai-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 247, 255, 0.6) var(--bg-panel);
+    }
+    .ai-messages::-webkit-scrollbar {
+      width: 8px;
+    }
+    .ai-messages::-webkit-scrollbar-track {
+      background: var(--bg-panel);
+      border-radius: 4px;
+    }
+    .ai-messages::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 4px;
+    }
+    .ai-messages::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(0, 247, 255, 0.9), rgba(59, 130, 246, 0.9));
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .message.ai {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      align-self: flex-start;
+      color: var(--text-secondary);
+    }
+
+    .message.user {
+      background: rgba(0, 247, 255, 0.1);
+      border: 1px solid rgba(0, 247, 255, 0.3);
+      align-self: flex-end;
+      color: var(--text-primary);
+    }
+
+    .ai-input {
+      padding: 20px;
+      border-top: 1px solid var(--border-dim);
+      display: flex;
+      gap: 10px;
+    }
+
+    .ai-input input {
+      flex: 1;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .ai-input input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .ai-input button {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border: none;
+      border-radius: var(--radius-md);
+      color: white;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .ai-input button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glow-cyan);
+    }
+
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+      }
+      
+      .nav {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .ai-assistant {
+        width: calc(100% - 40px);
+        right: 20px;
+        bottom: 20px;
+      }
+      
+      .hero-title {
+        font-size: 2rem;
+      }
+      
+      .hero-card {
+        padding: 25px;
+      }
+    }
+
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--accent-cyan);
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    
+    #three-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .noema-badge {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      padding: 8px 15px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid var(--accent-cyan);
+      border-radius: var(--radius-md);
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.8rem;
+      color: var(--accent-cyan);
+      backdrop-filter: blur(5px);
+    }
+
+    .liquid-glass-defs {
+      position: absolute;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .liquid-glass {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      backdrop-filter: blur(26px) saturate(220%) brightness(1.12) contrast(1.05);
+      -webkit-backdrop-filter: blur(26px) saturate(220%) brightness(1.12) contrast(1.05);
+      border-color: rgba(151, 173, 207, 0.24) !important;
+      box-shadow:
+        0 16px 36px rgba(2, 8, 23, 0.54),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(132, 152, 182, 0.1);
+    }
+
+    .liquid-glass::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(140% 95% at 6% 8%, rgba(255, 255, 255, 0.2), transparent 52%),
+        radial-gradient(120% 90% at 100% 0%, rgba(156, 176, 212, 0.1), transparent 54%);
+      opacity: 0.62;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .liquid-glass::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(120% 100% at 92% 88%, rgba(132, 159, 202, 0.14), transparent 58%),
+        radial-gradient(160% 100% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 66%),
+        linear-gradient(110deg, rgba(255,255,255,0.04), rgba(255,255,255,0.1) 46%, rgba(132,162,202,0.06) 64%, rgba(255,255,255,0.03));
+      mix-blend-mode: screen;
+      opacity: 0.5;
+      pointer-events: none;
+      filter: url(#liquidGlassDistort);
+      animation: liquidSheen 9s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    .liquid-glass > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes auroraDrift {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(-1.5%, -1%, 0) scale(1.03); }
+    }
+
+    @keyframes auroraPulse {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.58; transform: scale(1.06); }
+    }
+
+    @keyframes liquidSheen {
+      0% { transform: translateX(-3%) translateY(0); }
+      100% { transform: translateX(3%) translateY(-1.5%); }
+    }
+
+    @keyframes orbDrift {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(18px, -14px, 0) scale(1.08); }
+    }
+
+    @keyframes lineFlow {
+      0% { stroke-dashoffset: 0; opacity: 0.25; }
+      50% { opacity: 0.45; }
+      100% { stroke-dashoffset: -26; opacity: 0.25; }
+    }
+
+    @keyframes starPulse {
+      0%, 100% { opacity: 0.85; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.28); }
+    }
+
+    @keyframes glowFloat {
+      0% { opacity: 0.15; transform: scale(1); }
+      100% { opacity: 0.3; transform: scale(1.08); }
+    }
+
+    
+    .greek {
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      color: var(--accent-yellow);
+    }
+  </style>
+</head>
+<body>
+  <svg class="liquid-glass-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="liquidGlassDistort" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence
+          id="liquidTurbulence"
+          type="fractalNoise"
+          baseFrequency="0.0075 0.011"
+          numOctaves="2"
+          seed="13"
+          stitchTiles="stitch"
+          result="noise"
+        />
+        <feDisplacementMap
+          id="liquidDisplacement"
+          in="SourceGraphic"
+          in2="noise"
+          scale="20"
+          xChannelSelector="R"
+          yChannelSelector="G"
+        />
+      </filter>
+    </defs>
+  </svg>
+
+  
+  <div class="cosmic-bg"></div>
+  <div class="constellations">
+    <svg class="constellation-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+      <circle class="constellation-glow" cx="190" cy="205" r="36"></circle>
+      <circle class="constellation-glow" cx="782" cy="268" r="30"></circle>
+      <circle class="constellation-glow" cx="610" cy="690" r="34"></circle>
+
+      <line class="constellation-line" x1="110" y1="170" x2="220" y2="210"></line>
+      <line class="constellation-line" x1="220" y1="210" x2="330" y2="184"></line>
+      <line class="constellation-line" x1="330" y1="184" x2="420" y2="235"></line>
+      <line class="constellation-line" x1="640" y1="165" x2="745" y2="250"></line>
+      <line class="constellation-line" x1="745" y1="250" x2="842" y2="205"></line>
+      <line class="constellation-line" x1="575" y1="640" x2="660" y2="700"></line>
+      <line class="constellation-line" x1="660" y1="700" x2="760" y2="655"></line>
+      <line class="constellation-line" x1="250" y1="640" x2="340" y2="710"></line>
+      <line class="constellation-line" x1="340" y1="710" x2="430" y2="668"></line>
+
+      <circle class="constellation-star big" cx="110" cy="170" r="2.6"></circle>
+      <circle class="constellation-star" cx="220" cy="210" r="2.2"></circle>
+      <circle class="constellation-star" cx="330" cy="184" r="1.8"></circle>
+      <circle class="constellation-star big" cx="420" cy="235" r="2.7"></circle>
+
+      <circle class="constellation-star big" cx="640" cy="165" r="2.4"></circle>
+      <circle class="constellation-star" cx="745" cy="250" r="2.1"></circle>
+      <circle class="constellation-star big" cx="842" cy="205" r="2.8"></circle>
+
+      <circle class="constellation-star" cx="575" cy="640" r="1.8"></circle>
+      <circle class="constellation-star big" cx="660" cy="700" r="2.6"></circle>
+      <circle class="constellation-star" cx="760" cy="655" r="2"></circle>
+
+      <circle class="constellation-star" cx="250" cy="640" r="1.9"></circle>
+      <circle class="constellation-star" cx="340" cy="710" r="2.1"></circle>
+      <circle class="constellation-star big" cx="430" cy="668" r="2.7"></circle>
+    </svg>
+  </div>
+  <div class="glass-orbs" aria-hidden="true">
+    <div class="glass-orb orb-a"></div>
+    <div class="glass-orb orb-b"></div>
+    <div class="glass-orb orb-c"></div>
+  </div>
+  <div class="grid-lines"></div>
+
+  
+  <div class="container">
+    
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-satellite-dish"></i>
+        </div>
+        <div class="logo-text">
+          <h1>NOEMA</h1>
+          <div class="tagline">Black-Box Intelligence · <span class="greek">νόημα</span> · Thought-Content Analysis</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="mainNav">
+        <button class="nav-btn liquid-glass active" data-page="overview">
+          <i class="fas fa-home"></i> Overview
+        </button>
+        <button class="nav-btn liquid-glass" data-page="analysis">
+          <i class="fas fa-brain"></i> Analysis
+        </button>
+        <button class="nav-btn liquid-glass" data-page="philosophy">
+          <i class="fas fa-book"></i> Philosophy
+        </button>
+        <button class="nav-btn liquid-glass" data-page="system">
+          <i class="fas fa-cogs"></i> System
+        </button>
+      </nav>
+
+      <div class="status-indicator liquid-glass">
+        <div class="status-dot"></div>
+        <span>SYSTEM ACTIVE</span>
+      </div>
+    </header>
+
+    
+    <main id="mainContent">
+      
+      <section id="overviewPage" class="page active">
+        <div class="hero">
+          <div class="hero-card liquid-glass">
+            <h1 class="hero-title">Decoding the Unobservable</h1>
+            <p class="hero-subtitle">
+              NOEMA combines four analysis modes in one interface: satellite telemetry diagnostics,
+              rocket visual detection, spacesuit defect detection, and voice-state diagnostics.
+              Inspired by phenomenology's <span class="greek">νόημα</span> (noema), it infers hidden operational states from observable signals.
+            </p>
+            
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-icon">
+                  <i class="fas fa-cube"></i>
+                </div>
+                <h3 class="concept-title">Black-Box Principle</h3>
+                <p class="concept-text">
+                  Infer subsystem conditions solely from observable behavior. No source code, diagrams, or proprietary internals needed.
+                </p>
+              </div>
+              
+              <div class="concept-card">
+                <div class="concept-icon">
+                  <i class="fas fa-project-diagram"></i>
+                </div>
+                <h3 class="concept-title">Causal Inference</h3>
+                <p class="concept-text">
+                  Extract failure chains from telemetry anomalies with temporal sequencing and confidence scoring.
+                </p>
+              </div>
+              
+              <div class="concept-card">
+                <div class="concept-icon">
+                  <i class="fas fa-rocket"></i>
+                </div>
+                <h3 class="concept-title">Multi-Domain Ready</h3>
+                <p class="concept-text">
+                  Active modules today: Satellite CSV analysis, Rocket YOLO image analysis, Spacesuit YOLO image analysis, and Voice diagnostics.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+      <section id="analysisPage" class="page">
+        <div class="analysis-domains" id="analysisDomainTabs">
+          <button class="domain-tab liquid-glass active" data-domain="satellite">Satellite</button>
+          <button class="domain-tab liquid-glass" data-domain="rocket">Rocket</button>
+          <button class="domain-tab liquid-glass" data-domain="spacesuit">Spacesuit</button>
+          <button class="domain-tab liquid-glass" data-domain="voice">Voice</button>
+        </div>
+
+        <div class="analysis-domain active" id="satelliteDomainPanel">
+        <div class="analysis-grid">
+          
+          <div class="control-panel liquid-glass">
+            <h2 class="panel-title">
+              <i class="fas fa-upload"></i> Telemetry Input
+            </h2>
+            
+            <div class="upload-zone liquid-glass" id="uploadZone">
+              <div class="upload-icon">
+                <i class="fas fa-file-csv"></i>
+              </div>
+              <p>Drag & drop telemetry CSV</p>
+              <p style="color: var(--text-dim); margin-top: 5px; font-size: 0.9rem;">
+                or click to browse
+              </p>
+              <input type="file" id="fileInput" accept=".csv" hidden>
+            </div>
+            
+            <div class="file-info" id="fileInfo">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="fileName">No file selected</span>
+                <span id="fileSize" style="color: var(--text-dim); font-size: 0.85rem;"></span>
+              </div>
+              <div id="fileStatus" style="margin-top: 10px; color: var(--accent-green); font-size: 0.85rem;">
+                Ready for analysis
+              </div>
+            </div>
+            
+            <div class="control-buttons">
+              <button class="btn btn-primary" id="analyzeBtn" disabled>
+                <i class="fas fa-play"></i> Initiate Analysis
+              </button>
+              <button class="btn btn-secondary" id="resetBtn">
+                <i class="fas fa-redo"></i> Reset Session
+              </button>
+            </div>
+            
+            <div class="progress-container" id="progressContainer" style="display: none;">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="progress-text">
+                <span id="progressStatus">Initializing...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+              <h3 class="panel-title" style="font-size: 1rem;">
+                <i class="fas fa-info-circle"></i> Required Schema
+              </h3>
+              <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: var(--radius-md); font-family: 'Space Grotesk', monospace; font-size: 0.85rem;">
+                <div>timestamp, battery_temp, voltage,</div>
+                <div>orientation_error, comm_status</div>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="results-panel liquid-glass">
+            <div class="results-header">
+              <h2 class="panel-title">
+                <i class="fas fa-chart-line"></i> Phenomenological Report
+              </h2>
+              <div class="report-id" id="reportId">NOEMA-READY</div>
+            </div>
+            
+            <div class="analysis-output" id="analysisOutput">
+              <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 4rem; color: var(--border-dim); margin-bottom: 20px;">
+                  <i class="fas fa-satellite"></i>
+                </div>
+                <h3 style="color: var(--text-secondary); margin-bottom: 10px;">
+                  Awaiting Telemetry Data
+                </h3>
+                <p style="color: var(--text-dim);">
+                  Upload CSV telemetry to generate black-box analysis
+                </p>
+              </div>
+            </div>
+            
+            <div class="visualization-area">
+              <h3 class="panel-title" style="margin-top: 30px;">
+                <i class="fas fa-cube"></i> 3D System Visualization
+              </h3>
+              <div class="viz-canvas" id="vizCanvas">
+                
+                <div id="three-container"></div>
+                <div class="noema-badge">NOEMA νόημα</div>
+              </div>
+              
+              <div class="viz-controls" id="vizControls" style="display: none;">
+                <button class="viz-btn" id="vizPlay">
+                  <i class="fas fa-play"></i> Play
+                </button>
+                <button class="viz-btn" id="vizPause">
+                  <i class="fas fa-pause"></i> Pause
+                </button>
+                <button class="viz-btn" id="vizReset">
+                  <i class="fas fa-redo"></i> Reset
+                </button>
+                <div style="flex: 1;"></div>
+                <input type="range" id="vizTimeline" min="0" max="100" value="0" style="flex: 2;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="status-bar">
+          <div class="status-item">
+            <div class="status-label">Model Status</div>
+            <div class="status-value online" id="modelStatus">ONNX READY</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Analysis Status</div>
+            <div class="status-value" id="analysisStatus">AWAITING DATA</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Last Update</div>
+            <div class="status-value" id="lastUpdate">--:--:-- UTC</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">System Health</div>
+            <div class="status-value online">NOMINAL</div>
+          </div>
+        </div>
+        </div>
+
+        <div class="analysis-domain" id="spacesuitDomainPanel">
+          <div class="hero-card liquid-glass">
+            <h2 class="hero-title" id="visualModuleTitle">Rocket Visual Analysis Module</h2>
+            <p class="hero-subtitle" id="visualModuleSubtitle">
+              Rocket surface diagnostics powered by Rocket YOLO. Upload a frame and run detection.
+            </p>
+            <div class="analysis-grid" style="margin-top: 20px;">
+              <div class="control-panel liquid-glass">
+                <h3 class="panel-title" id="visualFrameInputTitle">
+                  <i class="fas fa-rocket"></i> Rocket Frame Input
+                </h3>
+                <input type="file" id="spacesuitFileInput" accept="image/*" style="display: none;">
+                <div class="upload-zone liquid-glass" id="spacesuitUploadZone">
+                  <div class="upload-icon">
+                    <i class="fas fa-image"></i>
+                  </div>
+                  <p style="color: var(--text-secondary);">Drop image or click to upload</p>
+                  <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 8px;">PNG/JPG/JPEG</p>
+                </div>
+                <div class="file-info" id="spacesuitFileInfo">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: var(--text-dim);">File:</span>
+                    <span id="spacesuitFileName">-</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-dim);">Size:</span>
+                    <span id="spacesuitFileSize">-</span>
+                  </div>
+                </div>
+                <div class="control-buttons">
+                  <button class="btn btn-primary" id="spacesuitAnalyzeBtn" disabled>
+                    <i class="fas fa-search"></i> Analyze Rocket Frame
+                  </button>
+                </div>
+                <div id="spacesuitModelStatus" style="color: var(--text-dim); font-size: 0.9rem;">
+                  Model: waiting for first request
+                </div>
+              </div>
+              <div class="results-panel liquid-glass">
+                <div class="results-header">
+                  <h3 class="panel-title" style="margin: 0;">
+                    <i class="fas fa-microscope"></i> Detection Results
+                  </h3>
+                </div>
+                <div id="spacesuitPreviewContainer" style="margin-bottom: 16px; display: none;">
+                  <div id="spacesuitPreviewStage" style="position: relative; display: inline-block; max-width: 100%;">
+                    <img id="spacesuitPreviewImage" alt="Spacesuit preview" style="display: block; max-width: 100%; max-height: 360px; border-radius: var(--radius-md); border: 1px solid var(--border-dim);">
+                    <svg id="spacesuitOverlay" style="display:block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;"></svg>
+                  </div>
+                </div>
+                <div id="spacesuitResultsOutput" style="color: var(--text-secondary);">
+                  Upload an image to start rocket AI analysis.
+                </div>
+                <div id="spacesuitAnalyticsPanel" style="display:none; margin-top:16px;">
+                  <div id="spacesuitSummaryCards" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:12px;"></div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                      <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Class Distribution</div>
+                      <canvas id="spacesuitClassChart" height="180"></canvas>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                      <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Top Confidence</div>
+                      <canvas id="spacesuitConfidenceChart" height="180"></canvas>
+                    </div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                    <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">3D Damage Map</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                      <span style="font-size:0.76rem; color:var(--text-dim);">View</span>
+                      <select id="spacesuitViewPreset" style="background:#081226; color:#dbeafe; border:1px solid var(--border-dim); border-radius:8px; padding:4px 8px; font-size:0.78rem;">
+                        <option value="auto">Auto</option>
+                        <option value="front">Front</option>
+                        <option value="left">Left Side</option>
+                        <option value="right">Right Side</option>
+                        <option value="back">Back</option>
+                      </select>
+                    </div>
+                    <div id="spacesuit3dViz" style="width:100%; height:260px; border-radius: var(--radius-sm); overflow:hidden; background:radial-gradient(circle at 20% 20%, rgba(0,247,255,0.08), rgba(3,7,18,0.6));"></div>
+                    <div style="color:var(--text-dim); font-size:0.78rem; margin-top:8px;">Click highlighted defect areas in 3D to zoom and open incident analysis.</div>
+                  </div>
+                  <div style="margin-top:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                    <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Incident Analysis</div>
+                    <div id="spacesuitIncidentPanel" style="color:var(--text-secondary); line-height:1.5;">
+                      Select a defect in 3D to view probable origin and risk.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analysis-domain" id="voiceDomainPanel">
+          <div class="hero-card liquid-glass">
+            <h2 class="hero-title">Voice Diagnostics Module</h2>
+            <p class="hero-subtitle">
+              Local voice-state analysis: transcript, stress trend, acoustic anomaly trend, and actionable recommendations.
+            </p>
+            <div class="analysis-grid" style="margin-top: 20px;">
+              <div class="control-panel liquid-glass">
+                <h3 class="panel-title">
+                  <i class="fas fa-wave-square"></i> Voice Input
+                </h3>
+                <input type="file" id="voiceFileInput" accept="audio/*" style="display: none;">
+                <input type="file" id="voiceBaselineInput" accept="audio/*" style="display: none;">
+                <div class="upload-zone liquid-glass" id="voiceUploadZone">
+                  <div class="upload-icon">
+                    <i class="fas fa-microphone"></i>
+                  </div>
+                  <p style="color: var(--text-secondary);">Drop primary audio or click to upload</p>
+                  <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 8px;">WAV/MP3/M4A/OGG</p>
+                </div>
+                <div class="file-info" id="voiceFileInfo">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: var(--text-dim);">Audio:</span>
+                    <span id="voiceFileName">-</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-dim);">Size:</span>
+                    <span id="voiceFileSize">-</span>
+                  </div>
+                </div>
+                <button class="btn btn-secondary" id="voiceBaselineBtn" style="margin-top:10px;">
+                  <i class="fas fa-sliders-h"></i> Add Baseline (Optional)
+                </button>
+                <div class="file-info" id="voiceBaselineInfo" style="margin-top:8px;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-dim);">Baseline:</span>
+                    <span id="voiceBaselineName">Not set</span>
+                  </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+                  <select id="voiceAudioType" style="background:#081226; color:#dbeafe; border:1px solid var(--border-dim); border-radius:8px; padding:8px;">
+                    <option value="generic">Generic</option>
+                    <option value="comms">Comms</option>
+                    <option value="eva">EVA</option>
+                  </select>
+                  <select id="voiceReportMode" style="background:#081226; color:#dbeafe; border:1px solid var(--border-dim); border-radius:8px; padding:8px;">
+                    <option value="full">Full Report</option>
+                    <option value="compact">Compact</option>
+                  </select>
+                </div>
+                <div class="control-buttons">
+                  <button class="btn btn-primary" id="voiceAnalyzeBtn" disabled>
+                    <i class="fas fa-stethoscope"></i> Analyze Voice
+                  </button>
+                </div>
+              </div>
+              <div class="results-panel liquid-glass">
+                <div class="results-header">
+                  <h3 class="panel-title" style="margin: 0;">
+                    <i class="fas fa-headset"></i> Voice Analysis Results
+                  </h3>
+                </div>
+                <div id="voiceSummaryCards" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:12px;"></div>
+                <div style="margin-bottom:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                  <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Timeline (Fused / Stress / Acoustic)</div>
+                  <div id="voiceTimeline" style="display:flex; gap:2px; align-items:flex-end; height:90px;"></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                    <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Events</div>
+                    <div id="voiceEvents" class="scroll-panel" style="max-height:220px; overflow:auto; color:var(--text-secondary);"></div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                    <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Transcript</div>
+                    <div id="voiceTranscript" class="scroll-panel" style="max-height:220px; overflow:auto; color:var(--text-secondary);"></div>
+                  </div>
+                </div>
+                <div style="margin-top:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px;">
+                  <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">Recommendations & Explanation</div>
+                  <div id="voiceRecommendations" style="color:var(--text-secondary); line-height:1.5;">
+                    Upload a voice sample to run diagnostics.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+      <section id="philosophyPage" class="page">
+        <div class="hero-card liquid-glass">
+          <h1 class="hero-title">The <span class="greek">νόημα</span> Concept</h1>
+          
+          <div class="concept-grid">
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-greek"></i>
+              </div>
+              <h3 class="concept-title">Etymology</h3>
+              <p class="concept-text">
+                <span class="greek">νόημα</span> (noema) — "that which is thought", thought-content. 
+                In Husserl's phenomenology: the intentional object of consciousness, 
+                distinct from noesis (the act of thinking).
+              </p>
+            </div>
+            
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-eye"></i>
+              </div>
+              <h3 class="concept-title">Black-Box as Phenomenon</h3>
+              <p class="concept-text">
+                Telemetry streams are phenomena. NOEMA treats them as intentional objects 
+                to reconstruct the noematic correlates — the hidden system states behind observable traces.
+              </p>
+            </div>
+            
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-network-wired"></i>
+              </div>
+              <h3 class="concept-title">Inference Engine</h3>
+              <p class="concept-text">
+                Temporal pattern extraction → anomaly correlation → causal chain inference → 
+                confidence-scored diagnostic report. The noema emerges from the data.
+              </p>
+            </div>
+          </div>
+          
+          <div style="margin-top: 40px; padding: 25px; background: rgba(0, 247, 255, 0.05); border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
+            <h3 style="color: var(--accent-cyan); margin-bottom: 15px;">Startup Positioning</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6;">
+              NOEMA occupies the critical gap between raw telemetry monitoring and deep system knowledge. 
+              We enable satellite operators, launch providers, and space agencies to understand failure modes 
+              when internals are unavailable or obscured. From reactive monitoring to predictive intelligence.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      
+      <section id="systemPage" class="page">
+        <div class="hero-card liquid-glass">
+          <h1 class="hero-title">System Architecture</h1>
+          
+          <div class="concept-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-layer-group"></i>
+              </div>
+              <h3 class="concept-title">Ingestion Layer</h3>
+              <p class="concept-text">
+                CSV/stream normalization, anomaly-aware preprocessing, 
+                temporal alignment across subsystems.
+              </p>
+            </div>
+            
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-robot"></i>
+              </div>
+              <h3 class="concept-title">Reasoning Layer</h3>
+              <p class="concept-text">
+                ONNX-based models for health trajectory modeling, 
+                causal inference, and confidence estimation.
+              </p>
+            </div>
+            
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-tv"></i>
+              </div>
+              <h3 class="concept-title">Interface Layer</h3>
+              <p class="concept-text">
+                3D visualization with domain-specific models, YOLO box overlays, timeline analytics,
+                voice event summaries, and a queryable AI analyst.
+              </p>
+            </div>
+            
+            <div class="concept-card">
+              <div class="concept-icon">
+                <i class="fas fa-expand-arrows-alt"></i>
+              </div>
+              <h3 class="concept-title">Scalability</h3>
+              <p class="concept-text">
+                Domain-agnostic core with active support for satellites, rockets,
+                spacesuits, and voice telemetry inputs.
+              </p>
+            </div>
+          </div>
+          
+          <div style="margin-top: 40px;">
+            <h3 class="panel-title">
+              <i class="fas fa-road"></i> Current Capability Snapshot
+            </h3>
+            <div style="display: grid; gap: 15px; margin-top: 20px;">
+              <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md);">
+                <div style="width: 30px; height: 30px; background: var(--accent-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-size: 0.8rem;">1</div>
+                <div>
+                  <div style="font-weight: bold; color: var(--accent-cyan);">Satellite Core</div>
+                  <div style="color: var(--text-secondary); font-size: 0.9rem;">CSV analysis, health trajectory, root-cause reporting</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: var(--radius-md);">
+                <div style="width: 30px; height: 30px; background: var(--accent-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-size: 0.8rem;">2</div>
+                <div>
+                  <div style="font-weight: bold; color: var(--text-secondary);">Rocket Visual Diagnostics</div>
+                  <div style="color: var(--text-dim); font-size: 0.9rem;">Image upload, YOLO detections, 3D incident mapping with rocket model</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: var(--radius-md);">
+                <div style="width: 30px; height: 30px; background: var(--accent-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-size: 0.8rem;">3</div>
+                <div>
+                  <div style="font-weight: bold; color: var(--text-secondary);">Spacesuit + Voice Diagnostics</div>
+                  <div style="color: var(--text-dim); font-size: 0.9rem;">Spacesuit defect detection plus local audio anomaly, stress, and recommendations</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  
+  <div class="ai-assistant" id="aiAssistant">
+    <div class="ai-header" id="aiToggle">
+      <div class="ai-title">
+        <i class="fas fa-brain"></i>
+        <span>NOEMA Analyst</span>
+      </div>
+      <i class="fas fa-chevron-down" id="aiToggleIcon"></i>
+    </div>
+    
+    <div class="ai-body">
+      <div class="ai-messages" id="aiMessages">
+        <div class="message ai">
+          <strong>NOEMA Analyst:</strong> Ready across all domains. 
+          Use Satellite for CSV telemetry, Rocket/Spacesuit for image YOLO, or Voice for audio diagnostics.
+        </div>
+      </div>
+      
+      <div class="ai-input">
+        <input type="text" id="aiInput" placeholder="Ask about the analysis...">
+        <button id="aiSend">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  
+  <script>
+    const CONFIG = {
+      DEBUG: false,
+      API_BASE_URL: window.location.origin,
+      VISUALIZATION: {
+        CAMERA: { fov: 60, near: 0.1, far: 1000 },
+        LIGHTS: { ambient: 0x222233, directional: 0xffffff },
+        SATELLITE: { scale: 1, rotationSpeed: 0.002 }
+      }
+    };
+    const State = {
+      currentPage: 'overview',
+      currentAnalysis: null,
+      isAnalyzing: false,
+      aiAssistantOpen: true,
+      visualization: null,
+      healthChart: null,
+      visualDomain: 'rocket',
+      spacesuitFile: null,
+      spacesuitDetections: [],
+      spacesuitCharts: {},
+      spacesuit3D: null,
+      voiceFile: null,
+      voiceBaselineFile: null
+    };
+    class Logger {
+      static debug(message, data = null) {
+        if (CONFIG.DEBUG) {
+          const time = new Date().toISOString().split('T')[1].split('.')[0];
+          console.log(`[${time}] ${message}`, data || '');
+        }
+      }
+      
+      static error(message, error = null) {
+        const time = new Date().toISOString().split('T')[1].split('.')[0];
+        console.error(`[${time}] ${message}`, error || '');
+      }
+    }
+    class Navigation {
+      static init() {
+        const navButtons = document.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+          btn.addEventListener('click', () => this.switchPage(btn.dataset.page));
+        });
+        this.switchPage('overview');
+      }
+      
+      static switchPage(pageId) {
+        Logger.debug(`Switching to page: ${pageId}`);
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.page === pageId);
+        });
+        document.querySelectorAll('.page').forEach(page => {
+          page.classList.toggle('active', page.id === `${pageId}Page`);
+        });
+        
+        State.currentPage = pageId;
+        if (pageId === 'analysis') {
+          this.initAnalysisPage();
+        }
+      }
+      
+      static initAnalysisPage() {
+        Logger.debug('Initializing analysis page');
+        const satellitePanel = document.getElementById('satelliteDomainPanel');
+        const satelliteVisible = satellitePanel && satellitePanel.classList.contains('active');
+        if (satelliteVisible && !State.visualization && document.getElementById('three-container')) {
+          setTimeout(() => Visualization3D.init(), 100);
+        }
+      }
+    }
+
+    class AnalysisDomains {
+      static init() {
+        const tabs = document.querySelectorAll('#analysisDomainTabs .domain-tab');
+        tabs.forEach((tab) => {
+          tab.addEventListener('click', () => this.switchDomain(tab.dataset.domain));
+        });
+      }
+
+      static switchDomain(domain) {
+        document.querySelectorAll('#analysisDomainTabs .domain-tab').forEach((tab) => {
+          tab.classList.toggle('active', tab.dataset.domain === domain);
+        });
+
+        document.querySelectorAll('.analysis-domain').forEach((panel) => {
+          const isTarget =
+            (domain === 'satellite' && panel.id === 'satelliteDomainPanel') ||
+            (domain === 'rocket' && panel.id === 'spacesuitDomainPanel') ||
+            (domain === 'spacesuit' && panel.id === 'spacesuitDomainPanel') ||
+            (domain === 'voice' && panel.id === 'voiceDomainPanel');
+          panel.classList.toggle('active', isTarget);
+        });
+
+        if (domain === 'satellite') {
+          Navigation.initAnalysisPage();
+        } else if (domain === 'rocket' || domain === 'spacesuit') {
+          SpacesuitModule.setDomain(domain);
+        }
+      }
+    }
+
+    class SpacesuitModule {
+      static setDomain(domain) {
+        const prevDomain = State.visualDomain || 'rocket';
+        const mode = domain === 'spacesuit' ? 'spacesuit' : 'rocket';
+        State.visualDomain = mode;
+        const isRocket = mode === 'rocket';
+        const title = document.getElementById('visualModuleTitle');
+        const subtitle = document.getElementById('visualModuleSubtitle');
+        const frameTitle = document.getElementById('visualFrameInputTitle');
+        const analyzeBtn = document.getElementById('spacesuitAnalyzeBtn');
+        const output = document.getElementById('spacesuitResultsOutput');
+        if (title) title.textContent = isRocket ? 'Rocket Visual Analysis Module' : 'Spacesuit Analysis Module';
+        if (subtitle) {
+          subtitle.textContent = isRocket
+            ? 'Rocket surface diagnostics powered by Rocket YOLO. Upload a frame and run detection.'
+            : 'EVA visual diagnostics for spacesuit damage and risk markers. Upload a frame and run detection.';
+        }
+        if (frameTitle) {
+          frameTitle.innerHTML = isRocket
+            ? '<i class="fas fa-rocket"></i> Rocket Frame Input'
+            : '<i class="fas fa-user-astronaut"></i> Spacesuit Frame Input';
+        }
+        if (analyzeBtn) {
+          analyzeBtn.innerHTML = isRocket
+            ? '<i class="fas fa-search"></i> Analyze Rocket Frame'
+            : '<i class="fas fa-search"></i> Analyze Spacesuit Frame';
+        }
+        if (output && !State.spacesuitFile) {
+          output.textContent = isRocket
+            ? 'Upload an image to start rocket AI analysis.'
+            : 'Upload an image to start spacesuit AI analysis.';
+        }
+        if (prevDomain !== mode) {
+          State.spacesuitFile = null;
+          State.spacesuitDetections = [];
+          const analyzeBtnEl = document.getElementById('spacesuitAnalyzeBtn');
+          const fileInfo = document.getElementById('spacesuitFileInfo');
+          const preview = document.getElementById('spacesuitPreviewContainer');
+          const analytics = document.getElementById('spacesuitAnalyticsPanel');
+          if (analyzeBtnEl) analyzeBtnEl.disabled = true;
+          if (fileInfo) fileInfo.classList.remove('active');
+          if (preview) preview.style.display = 'none';
+          if (analytics) analytics.style.display = 'none';
+          this.clearOverlay();
+          this.destroyCharts();
+          this.destroy3DScene();
+        }
+      }
+
+      static destroy3DScene() {
+        const s = State.spacesuit3D;
+        if (!s) return;
+        if (s.raf) {
+          cancelAnimationFrame(s.raf);
+          s.raf = null;
+        }
+        this.clear3D();
+        if (s.renderer && typeof s.renderer.dispose === 'function') {
+          s.renderer.dispose();
+        }
+        if (s.container) {
+          s.container.innerHTML = '';
+        }
+        State.spacesuit3D = null;
+      }
+
+      static init() {
+        const uploadZone = document.getElementById('spacesuitUploadZone');
+        const fileInput = document.getElementById('spacesuitFileInput');
+        const analyzeBtn = document.getElementById('spacesuitAnalyzeBtn');
+        if (!uploadZone || !fileInput || !analyzeBtn) return;
+        this.setDomain(State.visualDomain || 'rocket');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            this.handleFile(e.target.files[0]);
+          }
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone.style.borderColor = 'var(--accent-cyan)';
+        });
+        uploadZone.addEventListener('dragleave', () => {
+          uploadZone.style.borderColor = 'var(--border-bright)';
+        });
+        uploadZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone.style.borderColor = 'var(--border-bright)';
+          if (e.dataTransfer.files.length) {
+            const file = e.dataTransfer.files[0];
+            fileInput.files = e.dataTransfer.files;
+            this.handleFile(file);
+          }
+        });
+
+        analyzeBtn.addEventListener('click', () => this.analyze());
+        const viewPreset = document.getElementById('spacesuitViewPreset');
+        if (viewPreset) {
+          viewPreset.addEventListener('change', () => {
+            if (State.spacesuitDetections && State.spacesuitDetections.length) {
+              this.render3D(State.spacesuitDetections);
+            }
+          });
+        }
+        window.addEventListener('resize', () => this.onResize());
+      }
+
+      static handleFile(file) {
+        const isRocket = (State.visualDomain || 'rocket') === 'rocket';
+        State.spacesuitFile = file;
+        document.getElementById('spacesuitFileInfo').classList.add('active');
+        document.getElementById('spacesuitFileName').textContent = file.name;
+        document.getElementById('spacesuitFileSize').textContent = FileHandler.formatFileSize(file.size);
+        document.getElementById('spacesuitAnalyzeBtn').disabled = false;
+        document.getElementById('spacesuitResultsOutput').innerHTML = isRocket
+          ? 'Rocket image loaded. Run detection to get damage analysis.'
+          : 'Spacesuit image loaded. Run detection to get damage analysis.';
+        State.spacesuitDetections = [];
+        const incident = document.getElementById('spacesuitIncidentPanel');
+        if (incident) {
+          incident.textContent = 'Select a defect in 3D to view probable origin and risk.';
+        }
+        const viewPreset = document.getElementById('spacesuitViewPreset');
+        if (viewPreset) viewPreset.value = 'auto';
+        document.getElementById('spacesuitAnalyticsPanel').style.display = 'none';
+        this.destroyCharts();
+        this.clearOverlay();
+        this.clear3D();
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const preview = document.getElementById('spacesuitPreviewImage');
+          preview.onload = () => this.resizeOverlayToImage();
+          preview.src = e.target.result;
+          document.getElementById('spacesuitPreviewContainer').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      static async analyze() {
+        if (!State.spacesuitFile) return;
+
+        const analyzeBtn = document.getElementById('spacesuitAnalyzeBtn');
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<div class="loading"></div> Detecting...';
+
+        try {
+          const imageData = await this.fileToDataUrl(State.spacesuitFile);
+          const response = await fetch(`${CONFIG.API_BASE_URL}/api/yolo_frame`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image: imageData,
+              analysis_id: State.currentAnalysis?.analysis_id || null,
+              analysis_domain: State.visualDomain || 'rocket',
+              conf_threshold: 0.05,
+              use_fallback: false
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          this.renderResult(result);
+        } catch (error) {
+          Logger.error('Visual analysis failed:', error);
+          document.getElementById('spacesuitResultsOutput').innerHTML = `
+            <div style="color: var(--accent-red);">
+              Failed to analyze image: ${escapeHtml(error.message)}
+            </div>
+          `;
+        } finally {
+          analyzeBtn.disabled = false;
+          analyzeBtn.innerHTML = State.visualDomain === 'spacesuit'
+            ? '<i class="fas fa-search"></i> Analyze Spacesuit Frame'
+            : '<i class="fas fa-search"></i> Analyze Rocket Frame';
+        }
+      }
+
+      static renderResult(result) {
+        const model = result.model || {};
+        const mode = result.detection_mode || 'none';
+        const statusText = model.model_loaded
+          ? 'Model loaded and ready'
+          : `Model not loaded: ${model.load_error || 'unknown reason'}`;
+        document.getElementById('spacesuitModelStatus').textContent = `Model: ${statusText}`;
+        document.getElementById('spacesuitModelStatus').style.color = model.model_loaded
+          ? 'var(--accent-green)'
+          : 'var(--accent-yellow)';
+
+        const detections = result.detections || [];
+        State.spacesuitDetections = detections;
+        this.drawOverlay(detections);
+        if (!detections.length) {
+          document.getElementById('spacesuitAnalyticsPanel').style.display = 'none';
+          this.destroyCharts();
+          this.clear3D();
+          const incident = document.getElementById('spacesuitIncidentPanel');
+          if (incident) {
+            incident.textContent = 'No defects selected. Run analysis on another image.';
+          }
+          document.getElementById('spacesuitResultsOutput').innerHTML = `
+            <div style="padding: 12px; border: 1px solid var(--border-dim); border-radius: var(--radius-md);">
+              No defects detected in this frame.
+            </div>
+            <div style="margin-top: 12px; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-dim); background: rgba(255, 255, 255, 0.03); color: var(--text-secondary); line-height: 1.5;">
+              Explanation: the model did not find regions with enough confidence. Try a closer image, better lighting, and less blur.
+            </div>
+          `;
+          return;
+        }
+
+        const rows = detections.map((det, idx) => {
+          const conf = det.confidence !== undefined ? (det.confidence * 100).toFixed(1) : '0.0';
+          const sourceText =
+            det.source === 'heuristic_fallback' ? 'fallback' :
+            det.source === 'yolo_lowconf' ? 'yolo_lowconf' :
+            det.source === 'yolo_backup' ? 'yolo_backup' : 'yolo';
+          const tagColor = det.class === 'burn' ? '#ef4444' : det.class === 'tear' ? '#f59e0b' : det.class === 'crack' ? '#3b82f6' : '#10b981';
+          return `
+            <div style="padding: 10px 12px; border: 1px solid var(--border-dim); border-radius: var(--radius-sm); margin-bottom: 8px; background:rgba(255,255,255,0.02);">
+              <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                <div style="font-weight: 600; color: var(--accent-cyan);">#${idx + 1} ${escapeHtml(det.class || 'object')}</div>
+                <span style="padding:2px 8px; border-radius:999px; font-size:0.75rem; background:${tagColor}22; color:${tagColor}; border:1px solid ${tagColor}66;">${sourceText}</span>
+              </div>
+              <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top:4px;">Confidence: ${conf}%</div>
+            </div>
+          `;
+        }).join('');
+
+        const explanation = this.generateDefectExplanation(detections);
+        const modeNote = mode === 'heuristic_fallback'
+          ? '<div style="margin-bottom: 10px; padding: 10px; border: 1px solid rgba(245,158,11,0.5); border-radius: var(--radius-sm); color: var(--accent-yellow);">Fallback candidate regions are shown because YOLO produced no confident detections.</div>'
+          : '';
+        document.getElementById('spacesuitResultsOutput').innerHTML = `
+          ${modeNote}
+          <div style="margin-bottom: 10px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid rgba(0,247,255,0.3); background: rgba(0,247,255,0.06); color: var(--accent-cyan);">
+            Defects are shown on the image and on the 3D ${State.visualDomain === 'spacesuit' ? 'spacesuit' : 'rocket'} map. Click a 3D defect zone to zoom and open incident details.
+          </div>
+          ${rows}
+          <div style="margin-top: 12px; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-dim); background: rgba(255, 255, 255, 0.03);">
+            <div style="font-weight: 700; color: var(--accent-yellow); margin-bottom: 6px;">
+              Defect Explanation
+            </div>
+            <div style="color: var(--text-secondary); line-height: 1.5;">
+              ${escapeHtml(explanation)}
+            </div>
+          </div>
+        `;
+
+        this.renderAnalytics(detections);
+      }
+
+      static resizeOverlayToImage() {
+        const img = document.getElementById('spacesuitPreviewImage');
+        const svg = document.getElementById('spacesuitOverlay');
+        if (!img || !svg) return;
+        const w = img.clientWidth || 1;
+        const h = img.clientHeight || 1;
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      }
+
+      static clearOverlay() {
+        const svg = document.getElementById('spacesuitOverlay');
+        if (!svg) return;
+        svg.innerHTML = '';
+      }
+
+      static drawOverlay(detections) {
+        const img = document.getElementById('spacesuitPreviewImage');
+        const svg = document.getElementById('spacesuitOverlay');
+        if (!img || !svg) return;
+        this.resizeOverlayToImage();
+        this.clearOverlay();
+
+        const sorted = [...detections].sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
+        const limited = sorted.slice(0, 6);
+
+        const scaleX = (img.clientWidth || 1) / (img.naturalWidth || img.clientWidth || 1);
+        const scaleY = (img.clientHeight || 1) / (img.naturalHeight || img.clientHeight || 1);
+
+        limited.forEach((det, idx) => {
+          const color = det.class === 'burn' ? '#ef4444' : det.class === 'tear' ? '#f59e0b' : det.class === 'crack' ? '#3b82f6' : '#00f7ff';
+          const label = `${det.class || 'defect'} ${(Number(det.confidence || 0) * 100).toFixed(1)}%`;
+
+          if (Array.isArray(det.polygon) && det.polygon.length >= 4) {
+            const points = det.polygon
+              .map((p) => `${(Number(p[0]) * scaleX).toFixed(2)},${(Number(p[1]) * scaleY).toFixed(2)}`)
+              .join(' ');
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            polygon.setAttribute('points', points);
+            polygon.setAttribute('fill', 'rgba(0,247,255,0.15)');
+            polygon.setAttribute('stroke', color);
+            polygon.setAttribute('stroke-width', '2');
+            svg.appendChild(polygon);
+
+            const first = det.polygon[0];
+            if (idx < 4) {
+              this.drawOverlayLabel(svg, (Number(first[0]) * scaleX) + 2, (Number(first[1]) * scaleY) - 6, `${idx + 1}. ${label}`);
+            }
+            return;
+          }
+
+          const bbox = det.bbox || {};
+          const x1 = Number(bbox.x1 || 0) * scaleX;
+          const y1 = Number(bbox.y1 || 0) * scaleY;
+          const x2 = Number(bbox.x2 || 0) * scaleX;
+          const y2 = Number(bbox.y2 || 0) * scaleY;
+          const w = Math.max(2, x2 - x1);
+          const h = Math.max(2, y2 - y1);
+
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', x1.toFixed(2));
+          rect.setAttribute('y', y1.toFixed(2));
+          rect.setAttribute('width', w.toFixed(2));
+          rect.setAttribute('height', h.toFixed(2));
+          rect.setAttribute('fill', 'rgba(0,247,255,0.12)');
+          rect.setAttribute('stroke', color);
+          rect.setAttribute('stroke-width', '2');
+          svg.appendChild(rect);
+
+          if (idx < 4) {
+            this.drawOverlayLabel(svg, x1 + 2, y1 - 6, `${idx + 1}. ${label}`);
+          }
+        });
+      }
+
+      static drawOverlayLabel(svg, x, y, text) {
+        const tx = Math.max(4, Number(x || 0));
+        const ty = Math.max(14, Number(y || 0));
+        const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        bg.setAttribute('x', tx.toFixed(2));
+        bg.setAttribute('y', (ty - 12).toFixed(2));
+        bg.setAttribute('width', String(Math.max(72, text.length * 6.8)));
+        bg.setAttribute('height', '14');
+        bg.setAttribute('rx', '3');
+        bg.setAttribute('fill', 'rgba(3,7,18,0.85)');
+        svg.appendChild(bg);
+
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', (tx + 4).toFixed(2));
+        label.setAttribute('y', ty.toFixed(2));
+        label.setAttribute('fill', '#00f7ff');
+        label.setAttribute('font-size', '10');
+        label.setAttribute('font-family', 'monospace');
+        label.textContent = text;
+        svg.appendChild(label);
+      }
+
+      static generateDefectExplanation(detections) {
+        if (!detections.length) {
+          return 'No visible defects were detected in the uploaded image.';
+        }
+
+        const counts = {};
+        let maxConf = 0;
+        detections.forEach((det) => {
+          const key = (det.class || 'defect').toString();
+          counts[key] = (counts[key] || 0) + 1;
+          const conf = Number(det.confidence || 0);
+          if (conf > maxConf) maxConf = conf;
+        });
+
+        const parts = Object.entries(counts).map(([cls, count]) => `${count}x ${cls}`);
+        const severity = maxConf >= 0.75 ? 'high' : maxConf >= 0.45 ? 'medium' : 'low';
+
+        return `Detected ${detections.length} potential defect zone(s): ${parts.join(', ')}. ` +
+          `Overall model confidence is ${severity}. Inspect marked regions first, verify with additional viewing angles, and confirm with manual inspection.`;
+      }
+
+      static renderAnalytics(detections) {
+        const panel = document.getElementById('spacesuitAnalyticsPanel');
+        if (!panel) return;
+        panel.style.display = 'block';
+
+        const counts = {};
+        const confs = [];
+        detections.forEach((d) => {
+          const cls = d.class || 'unknown';
+          counts[cls] = (counts[cls] || 0) + 1;
+          confs.push(Number(d.confidence || 0));
+        });
+
+        const avg = confs.length ? confs.reduce((a, b) => a + b, 0) / confs.length : 0;
+        const top = confs.length ? Math.max(...confs) : 0;
+        const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'none';
+
+        const card = (label, value, color) => `
+          <div style="border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px; background:rgba(255,255,255,0.03);">
+            <div style="font-size:0.75rem; color:var(--text-dim);">${label}</div>
+            <div style="margin-top:4px; font-size:1.15rem; color:${color}; font-family:'Orbitron',sans-serif;">${value}</div>
+          </div>
+        `;
+        document.getElementById('spacesuitSummaryCards').innerHTML =
+          card('Detected Regions', detections.length, 'var(--accent-cyan)') +
+          card('Average Confidence', `${(avg * 100).toFixed(1)}%`, 'var(--accent-yellow)') +
+          card('Peak Confidence', `${(top * 100).toFixed(1)}%`, 'var(--accent-green)') +
+          card('Dominant Class', dominant.toUpperCase(), 'var(--accent-blue)');
+
+        this.renderCharts(detections, counts);
+        this.render3D(detections);
+      }
+
+      static destroyCharts() {
+        if (State.spacesuitCharts.classChart) {
+          State.spacesuitCharts.classChart.destroy();
+          State.spacesuitCharts.classChart = null;
+        }
+        if (State.spacesuitCharts.confChart) {
+          State.spacesuitCharts.confChart.destroy();
+          State.spacesuitCharts.confChart = null;
+        }
+      }
+
+      static renderCharts(detections, counts) {
+        if (typeof Chart === 'undefined') return;
+        this.destroyCharts();
+
+        const clsLabels = Object.keys(counts);
+        const clsValues = clsLabels.map((k) => counts[k]);
+        const clsCtx = document.getElementById('spacesuitClassChart');
+        const confCtx = document.getElementById('spacesuitConfidenceChart');
+        if (!clsCtx || !confCtx) return;
+
+        const paletteMap = { burn: '#ef4444', tear: '#f59e0b', crack: '#3b82f6', puncture: '#10b981', unknown: '#94a3b8' };
+        const clsColors = clsLabels.map((c) => paletteMap[c] || '#00f7ff');
+
+        State.spacesuitCharts.classChart = new Chart(clsCtx, {
+          type: 'doughnut',
+          data: { labels: clsLabels, datasets: [{ data: clsValues, backgroundColor: clsColors, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }] },
+          options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } }, cutout: '58%' }
+        });
+
+        const sorted = [...detections].sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0)).slice(0, 8);
+        State.spacesuitCharts.confChart = new Chart(confCtx, {
+          type: 'bar',
+          data: {
+            labels: sorted.map((d, i) => `${i + 1}. ${d.class}`),
+            datasets: [{ data: sorted.map((d) => (Number(d.confidence || 0) * 100).toFixed(1)), backgroundColor: sorted.map((d) => paletteMap[d.class] || '#00f7ff') }]
+          },
+          options: {
+            scales: {
+              x: { ticks: { color: '#cbd5e1', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.08)' } },
+              y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.08)' }, suggestedMax: 100 }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      static init3D() {
+        const container = document.getElementById('spacesuit3dViz');
+        if (!container || typeof THREE === 'undefined') return null;
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020617, 0.035);
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 200);
+        camera.position.set(0, 2.5, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0x8fb9ff, 0.55));
+        const key = new THREE.DirectionalLight(0xb9d7ff, 1.1);
+        key.position.set(16, 10, 12);
+        scene.add(key);
+        const rim = new THREE.DirectionalLight(0x4cc9ff, 0.6);
+        rim.position.set(-10, -4, -10);
+        scene.add(rim);
+
+        const starsGeo = new THREE.BufferGeometry();
+        const starCount = 1200;
+        const starPos = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount * 3; i += 3) {
+          starPos[i] = (Math.random() - 0.5) * 180;
+          starPos[i + 1] = (Math.random() - 0.5) * 180;
+          starPos[i + 2] = (Math.random() - 0.5) * 180;
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xe2f3ff, size: 0.45, transparent: true, opacity: 0.85 }));
+        scene.add(stars);
+
+        const earth = new THREE.Mesh(
+          new THREE.SphereGeometry(5.2, 40, 30),
+          new THREE.MeshPhongMaterial({ color: 0x143f7d, emissive: 0x061a39, shininess: 24 })
+        );
+        earth.position.set(-10, -6.5, -20);
+        scene.add(earth);
+
+        const atmosphere = new THREE.Mesh(
+          new THREE.SphereGeometry(5.55, 28, 22),
+          new THREE.MeshBasicMaterial({ color: 0x4ecbff, transparent: true, opacity: 0.12 })
+        );
+        atmosphere.position.copy(earth.position);
+        scene.add(atmosphere);
+
+        const orbitRing = new THREE.Mesh(
+          new THREE.TorusGeometry(10.5, 0.05, 16, 140),
+          new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.35 })
+        );
+        orbitRing.rotation.x = Math.PI / 2.4;
+        orbitRing.position.copy(earth.position);
+        scene.add(orbitRing);
+
+        const suit = new THREE.Group();
+        const fallbackSuit = new THREE.Group();
+        suit.add(fallbackSuit);
+        const torso = new THREE.Mesh(
+          new THREE.CylinderGeometry(2.4, 2.9, 7.2, 28),
+          new THREE.MeshPhongMaterial({ color: 0xdbeafe, emissive: 0x0b1020, shininess: 45, wireframe: false })
+        );
+        fallbackSuit.add(torso);
+        const helmet = new THREE.Mesh(
+          new THREE.SphereGeometry(1.8, 24, 20),
+          new THREE.MeshPhongMaterial({ color: 0xcbd5e1, emissive: 0x101b2e, shininess: 60 })
+        );
+        helmet.position.y = 4.5;
+        fallbackSuit.add(helmet);
+        const visor = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.1, 1.5, 0.9, 20),
+          new THREE.MeshBasicMaterial({ color: 0x6ec1ff, transparent: true, opacity: 0.45 })
+        );
+        visor.position.set(0, 4.45, 1.35);
+        visor.rotation.x = Math.PI / 2;
+        fallbackSuit.add(visor);
+        suit.position.set(0, 0.5, 0);
+        scene.add(suit);
+
+        const frame = new THREE.Mesh(
+          new THREE.TorusGeometry(7.8, 0.08, 12, 90),
+          new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.28 })
+        );
+        frame.rotation.x = Math.PI / 2;
+        scene.add(frame);
+
+        const pointsGroup = new THREE.Group();
+        suit.add(pointsGroup);
+
+        const backpack = new THREE.Mesh(
+          new THREE.BoxGeometry(2.8, 3.6, 1.6),
+          new THREE.MeshPhongMaterial({ color: 0xe2e8f0, emissive: 0x0b1222, shininess: 55 })
+        );
+        backpack.position.set(0, 1.4, -1.8);
+        fallbackSuit.add(backpack);
+        const armGeom = new THREE.CylinderGeometry(0.55, 0.62, 4.8, 20);
+        const armMat = new THREE.MeshPhongMaterial({ color: 0xdbeafe, emissive: 0x0c1223, shininess: 40 });
+        const leftArm = new THREE.Mesh(armGeom, armMat);
+        leftArm.position.set(-2.9, 1.3, 0.3);
+        leftArm.rotation.z = Math.PI / 11;
+        fallbackSuit.add(leftArm);
+        const rightArm = leftArm.clone();
+        rightArm.position.x = 2.9;
+        rightArm.rotation.z = -Math.PI / 11;
+        fallbackSuit.add(rightArm);
+        const legGeom = new THREE.CylinderGeometry(0.72, 0.8, 4.2, 20);
+        const leftLeg = new THREE.Mesh(legGeom, armMat);
+        leftLeg.position.set(-1, -4.8, 0.15);
+        fallbackSuit.add(leftLeg);
+        const rightLeg = leftLeg.clone();
+        rightLeg.position.x = 1;
+        fallbackSuit.add(rightLeg);
+        this.loadSpacesuitModel(suit, fallbackSuit);
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const controls = (typeof THREE.OrbitControls === 'function')
+          ? new THREE.OrbitControls(camera, renderer.domElement)
+          : null;
+        if (controls) {
+          controls.enableDamping = true;
+          controls.dampingFactor = 0.06;
+          controls.minDistance = 8;
+          controls.maxDistance = 34;
+          controls.maxPolarAngle = Math.PI * 0.72;
+          controls.target.set(0, 0.6, 0);
+        }
+
+        State.spacesuit3D = {
+          scene, camera, renderer, frame, suit, earth, stars, pointsGroup, container,
+          controls, raycaster, mouse, markerMeshes: [], raf: null, phase: 0,
+          lookAt: new THREE.Vector3(0, 0.6, 0), targetLookAt: null, targetCameraPos: null,
+          pointerDown: null, viewYawTarget: 0, modelDomain: State.visualDomain || 'rocket'
+        };
+        renderer.domElement.style.cursor = 'pointer';
+        renderer.domElement.onpointerdown = (event) => {
+          if (!State.spacesuit3D) return;
+          State.spacesuit3D.pointerDown = { x: event.clientX, y: event.clientY, t: Date.now() };
+        };
+        renderer.domElement.onpointerup = (event) => {
+          const sRef = State.spacesuit3D;
+          if (!sRef) return;
+          const start = sRef?.pointerDown;
+          sRef.pointerDown = null;
+          if (!start) return;
+          const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+          if (moved <= 8) {
+            this.handle3DClick(event);
+          }
+        };
+
+        const animate = () => {
+          if (!State.spacesuit3D) return;
+          const s = State.spacesuit3D;
+          s.phase += 0.012;
+          s.frame.rotation.z += 0.0025;
+          const targetYaw = Number(s.viewYawTarget || 0);
+          s.suit.rotation.y += (targetYaw - s.suit.rotation.y) * 0.09;
+          s.suit.position.y = 0.5 + Math.sin(s.phase) * 0.12;
+          s.earth.rotation.y += 0.0018;
+          s.stars.rotation.y += 0.00045;
+          if (s.pointsGroup && s.pointsGroup.children.length) {
+            s.pointsGroup.children.forEach((obj, idx) => {
+              if (obj.userData && obj.userData.pulse && obj.material) {
+                const k = 1 + Math.sin(s.phase * 2.4 + idx) * 0.22;
+                obj.scale.set(k, k, k);
+              }
+            });
+          }
+          if (s.targetLookAt && s.targetCameraPos) {
+            s.lookAt.lerp(s.targetLookAt, 0.12);
+            s.camera.position.lerp(s.targetCameraPos, 0.1);
+            if (s.camera.position.distanceTo(s.targetCameraPos) < 0.08) {
+              s.targetLookAt = null;
+              s.targetCameraPos = null;
+            }
+          }
+          s.camera.lookAt(s.lookAt);
+          if (s.controls) {
+            s.controls.target.copy(s.lookAt);
+            s.controls.update();
+          }
+          renderer.render(s.scene, s.camera);
+          State.spacesuit3D.raf = requestAnimationFrame(animate);
+        };
+        animate();
+        return State.spacesuit3D;
+      }
+
+      static clear3D() {
+        const s = State.spacesuit3D;
+        if (!s || !s.pointsGroup) return;
+        s.markerMeshes = [];
+        while (s.pointsGroup.children.length > 0) {
+          const ch = s.pointsGroup.children.pop();
+          if (ch.geometry && typeof ch.geometry.dispose === 'function') ch.geometry.dispose();
+          if (ch.material && typeof ch.material.dispose === 'function') ch.material.dispose();
+        }
+      }
+
+      static render3D(detections) {
+        let s = State.spacesuit3D;
+        const activeDomain = State.visualDomain || 'rocket';
+        if (s && s.modelDomain !== activeDomain) {
+          this.destroy3DScene();
+          s = null;
+        }
+        s = s || this.init3D();
+        if (!s) return;
+        this.clear3D();
+
+        const sorted = [...detections].sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0)).slice(0, 12);
+        const preview = document.getElementById('spacesuitPreviewImage');
+        const naturalW = Number(preview?.naturalWidth || 0);
+        const naturalH = Number(preview?.naturalHeight || 0);
+        const maxX = Math.max(...sorted.map((d) => Number(d?.bbox?.x2 || 0)), naturalW, 1);
+        const maxY = Math.max(...sorted.map((d) => Number(d?.bbox?.y2 || 0)), naturalH, 1);
+        const colorMap = { burn: 0xef4444, tear: 0xf59e0b, crack: 0x3b82f6, puncture: 0x10b981 };
+        const planeW = 8.8;
+        const planeH = 12.6;
+        const view = this.getActiveViewPreset(sorted, maxX);
+        const yawMap = { front: 0, left: 1.05, right: -1.05, back: Math.PI };
+        s.viewYawTarget = yawMap[view] ?? 0;
+        sorted.forEach((d, idx) => {
+          const b = d.bbox || {};
+          const x1 = Number(b.x1 || 0);
+          const y1 = Number(b.y1 || 0);
+          const x2 = Number(b.x2 || 0);
+          const y2 = Number(b.y2 || 0);
+          const cx = (x1 + x2) * 0.5;
+          const cy = (y1 + y2) * 0.5;
+          const wNorm = Math.max(0.03, Math.min(0.48, (x2 - x1) / maxX));
+          const hNorm = Math.max(0.03, Math.min(0.5, (y2 - y1) / maxY));
+          const nxRaw = ((cx / maxX) - 0.5) * planeW;
+          const nyRaw = (0.5 - (cy / maxY)) * planeH;
+          const projected = this.projectDefectToSuit(nxRaw, nyRaw, view);
+          const conf = Number(d.confidence || 0);
+          const rectW = Math.max(0.48, wNorm * planeW);
+          const rectH = Math.max(0.48, hNorm * planeH);
+          const zone = new THREE.Mesh(
+            new THREE.PlaneGeometry(rectW, rectH),
+            new THREE.MeshBasicMaterial({
+              color: colorMap[d.class] || 0x00f7ff,
+              transparent: true,
+              opacity: 0.23,
+              side: THREE.DoubleSide
+            })
+          );
+          zone.position.set(projected.x, projected.y, projected.z - conf * 0.12);
+          zone.rotation.y = projected.yaw;
+          zone.userData.pulse = true;
+          zone.userData.defect = { ...d, rank: idx + 1 };
+          s.pointsGroup.add(zone);
+          s.markerMeshes.push(zone);
+
+          const border = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.PlaneGeometry(rectW, rectH)),
+            new THREE.LineBasicMaterial({ color: colorMap[d.class] || 0x00f7ff, transparent: true, opacity: 0.95 })
+          );
+          border.position.copy(zone.position);
+          border.rotation.y = projected.yaw;
+          s.pointsGroup.add(border);
+
+          const halo = new THREE.Mesh(
+            new THREE.RingGeometry(0.15 + conf * 0.22, 0.22 + conf * 0.32, 28),
+            new THREE.MeshBasicMaterial({ color: colorMap[d.class] || 0x00f7ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+          );
+          halo.position.set(zone.position.x, zone.position.y, zone.position.z + 0.01);
+          halo.rotation.x = Math.PI / 2;
+          halo.userData.pulse = true;
+          s.pointsGroup.add(halo);
+        });
+
+        if (s.markerMeshes.length > 0) {
+          this.focus3DOnMarker(s.markerMeshes[0], false);
+          this.updateIncidentPanel(s.markerMeshes[0].userData.defect);
+        }
+      }
+
+      static handle3DClick(event) {
+        const s = State.spacesuit3D;
+        if (!s || !s.raycaster || !s.camera || !s.markerMeshes.length) return;
+        const rect = s.renderer.domElement.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        s.mouse.set(x, y);
+        s.raycaster.setFromCamera(s.mouse, s.camera);
+        const hits = s.raycaster.intersectObjects(s.markerMeshes, false);
+        if (!hits || hits.length === 0) return;
+        const marker = hits[0].object;
+        this.focus3DOnMarker(marker, true);
+        this.updateIncidentPanel(marker.userData.defect);
+      }
+
+      static getActiveViewPreset(detections, maxX) {
+        const select = document.getElementById('spacesuitViewPreset');
+        const chosen = (select?.value || 'auto').toLowerCase();
+        if (chosen !== 'auto') return chosen;
+        if (!detections || detections.length === 0) return 'front';
+        const meanX = detections.reduce((acc, d) => {
+          const b = d.bbox || {};
+          return acc + (Number(b.x1 || 0) + Number(b.x2 || 0)) * 0.5;
+        }, 0) / detections.length;
+        const xNorm = meanX / Math.max(1, Number(maxX || 1));
+        if (xNorm < 0.34) return 'left';
+        if (xNorm > 0.66) return 'right';
+        return 'front';
+      }
+
+      static projectDefectToSuit(nx, ny, view) {
+        if (view === 'left') return { x: -2.25 + nx * 0.24, y: ny, z: 0.55 + nx * 0.35, yaw: 1.05 };
+        if (view === 'right') return { x: 2.25 + nx * 0.24, y: ny, z: 0.55 - nx * 0.35, yaw: -1.05 };
+        if (view === 'back') return { x: -nx * 0.84, y: ny, z: -2.15, yaw: Math.PI };
+        return { x: nx * 0.92, y: ny, z: 2.35, yaw: 0 };
+      }
+
+      static loadSpacesuitModel(suitGroup, fallbackSuit) {
+        if (!suitGroup || typeof THREE === 'undefined' || typeof THREE.GLTFLoader !== 'function') return;
+        const mode = (State.visualDomain || 'rocket') === 'spacesuit' ? 'spacesuit' : 'rocket';
+        const modelUrl = mode === 'spacesuit' ? '/assets/models/spacesuit.glb' : '/assets/models/rocket.glb';
+        const attachModel = (source) => {
+          const model = source.clone(true);
+          model.traverse((node) => {
+            if (node.isMesh) {
+              node.castShadow = true;
+              node.receiveShadow = true;
+            }
+          });
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3();
+          const center = new THREE.Vector3();
+          box.getSize(size);
+          box.getCenter(center);
+          const height = Math.max(0.01, size.y || 1);
+          const scale = 11.4 / height;
+          model.scale.setScalar(scale);
+          model.position.set(-center.x * scale, -center.y * scale + 0.35, -center.z * scale);
+          suitGroup.add(model);
+          if (fallbackSuit) fallbackSuit.visible = false;
+        };
+
+        if (!SpacesuitModule._modelTemplates) {
+          SpacesuitModule._modelTemplates = {};
+        }
+        if (SpacesuitModule._modelTemplates[mode]) {
+          attachModel(SpacesuitModule._modelTemplates[mode]);
+          return;
+        }
+
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+          modelUrl,
+          (gltf) => {
+            SpacesuitModule._modelTemplates[mode] = gltf.scene;
+            attachModel(gltf.scene);
+          },
+          undefined,
+          () => Logger.debug(`${mode} GLB model not loaded, fallback mesh in use`)
+        );
+      }
+
+      static focus3DOnMarker(marker, notify) {
+        const s = State.spacesuit3D;
+        if (!s || !marker) return;
+        const p = new THREE.Vector3();
+        marker.getWorldPosition(p);
+        s.targetLookAt = p.clone();
+        s.targetCameraPos = p.clone().add(new THREE.Vector3(1.2, 1.1, 8.2));
+        if (notify) {
+          Logger.debug('Defect marker selected for 3D focus');
+        }
+      }
+
+      static getDefectNarrative(defect) {
+        const cls = String(defect?.class || 'damage').toLowerCase();
+        const templates = {
+          burn: {
+            title: 'Thermal Burn Pattern',
+            cause: 'Likely caused by localized high-temperature exposure, hot particle impact, or prolonged contact with overheated equipment.',
+            danger: 'Can weaken outer insulation and reduce thermal control margin during EVA.',
+            action: 'Run thermal integrity check, inspect inner layers, and restrict mission duration until repair.'
+          },
+          tear: {
+            title: 'Fabric Tear / Delamination',
+            cause: 'Likely caused by abrasive contact, snagging on structure edges, or repeated flex cycles under load.',
+            danger: 'Can propagate under pressure and lead to rapid loss of structural integrity.',
+            action: 'Inspect tear boundaries, perform pressure-retention test, and patch before next sortie.'
+          },
+          crack: {
+            title: 'Surface Crack',
+            cause: 'Likely caused by mechanical stress concentration, micro-impact, or brittle aging of outer components.',
+            danger: 'May spread into a larger rupture and compromise sealing surfaces.',
+            action: 'Map crack length, compare with previous inspection images, and replace cracked segment if growth is confirmed.'
+          },
+          puncture: {
+            title: 'Puncture Candidate',
+            cause: 'Likely caused by sharp debris contact or tool-point strike.',
+            danger: 'Direct pressure-leak risk if puncture reaches pressure-retention layers.',
+            action: 'Perform leak test immediately and quarantine suit for deep-layer inspection.'
+          }
+        };
+        return templates[cls] || {
+          title: 'Unclassified Damage Candidate',
+          cause: 'Model confidence indicates an anomalous region, but class attribution is uncertain.',
+          danger: 'Potential structural or thermal risk cannot be excluded.',
+          action: 'Review manually with close-up imagery and perform standard EVA damage checklist.'
+        };
+      }
+
+      static updateIncidentPanel(defect) {
+        const panel = document.getElementById('spacesuitIncidentPanel');
+        if (!panel || !defect) return;
+        const conf = (Number(defect.confidence || 0) * 100).toFixed(1);
+        const info = this.getDefectNarrative(defect);
+        panel.innerHTML = `
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:8px;">
+            <div style="font-family:'Orbitron',sans-serif; color:var(--accent-cyan);">${escapeHtml(info.title)}</div>
+            <div style="padding:2px 8px; border-radius:999px; border:1px solid var(--border-bright); color:var(--accent-yellow); font-size:0.78rem;">${escapeHtml(defect.class || 'damage')} ${conf}%</div>
+          </div>
+          <div style="margin-bottom:6px;"><span style="color:var(--text-dim);">Probable Cause:</span> ${escapeHtml(info.cause)}</div>
+          <div style="margin-bottom:6px;"><span style="color:var(--text-dim);">Operational Risk:</span> ${escapeHtml(info.danger)}</div>
+          <div><span style="color:var(--text-dim);">Recommended Action:</span> ${escapeHtml(info.action)}</div>
+        `;
+      }
+
+      static onResize() {
+        this.drawOverlay(State.spacesuitDetections || []);
+        const s = State.spacesuit3D;
+        if (!s || !s.container || !s.camera || !s.renderer) return;
+        const w = s.container.clientWidth || 1;
+        const h = s.container.clientHeight || 1;
+        s.camera.aspect = w / h;
+        s.camera.updateProjectionMatrix();
+        s.renderer.setSize(w, h);
+      }
+
+      static fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    class VoiceModule {
+      static init() {
+        const uploadZone = document.getElementById('voiceUploadZone');
+        const input = document.getElementById('voiceFileInput');
+        const baselineBtn = document.getElementById('voiceBaselineBtn');
+        const baselineInput = document.getElementById('voiceBaselineInput');
+        const analyzeBtn = document.getElementById('voiceAnalyzeBtn');
+        if (!uploadZone || !input || !analyzeBtn || !baselineBtn || !baselineInput) return;
+
+        uploadZone.addEventListener('click', () => input.click());
+        input.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files.length > 0) this.handleMainFile(e.target.files[0]);
+        });
+        baselineBtn.addEventListener('click', () => baselineInput.click());
+        baselineInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files.length > 0) this.handleBaselineFile(e.target.files[0]);
+        });
+        uploadZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone.style.borderColor = 'var(--accent-cyan)';
+        });
+        uploadZone.addEventListener('dragleave', () => {
+          uploadZone.style.borderColor = 'var(--border-bright)';
+        });
+        uploadZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone.style.borderColor = 'var(--border-bright)';
+          if (e.dataTransfer.files.length > 0) this.handleMainFile(e.dataTransfer.files[0]);
+        });
+        analyzeBtn.addEventListener('click', () => this.analyze());
+      }
+
+      static handleMainFile(file) {
+        State.voiceFile = file;
+        document.getElementById('voiceFileInfo').classList.add('active');
+        document.getElementById('voiceFileName').textContent = file.name;
+        document.getElementById('voiceFileSize').textContent = FileHandler.formatFileSize(file.size);
+        document.getElementById('voiceAnalyzeBtn').disabled = false;
+      }
+
+      static handleBaselineFile(file) {
+        State.voiceBaselineFile = file;
+        document.getElementById('voiceBaselineInfo').classList.add('active');
+        document.getElementById('voiceBaselineName').textContent = file.name;
+      }
+
+      static async analyze() {
+        if (!State.voiceFile) return;
+        const btn = document.getElementById('voiceAnalyzeBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="loading"></div> Processing...';
+        try {
+          const form = new FormData();
+          form.append('audio_file', State.voiceFile, State.voiceFile.name);
+          if (State.voiceBaselineFile) {
+            form.append('baseline_file', State.voiceBaselineFile, State.voiceBaselineFile.name);
+          }
+          form.append('audio_type', document.getElementById('voiceAudioType')?.value || 'generic');
+          form.append('report_mode', document.getElementById('voiceReportMode')?.value || 'full');
+
+          const res = await fetch(`${CONFIG.API_BASE_URL}/analyze/voice`, { method: 'POST', body: form });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          this.renderResult(data);
+        } catch (e) {
+          Logger.error('Voice analysis failed', e);
+          document.getElementById('voiceRecommendations').innerHTML = `<div style="color:var(--accent-red);">Voice analysis failed: ${escapeHtml(e.message)}</div>`;
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-stethoscope"></i> Analyze Voice';
+        }
+      }
+
+      static renderResult(result) {
+        const summary = result.summary || {};
+        const events = result.events || [];
+        const timeline = result.timeline || [];
+        const transcript = result.transcript_segments || [];
+        const recs = result.recommendations || [];
+        const explanation = result.explanation_text || '';
+
+        const esc = (v) => escapeHtml(v != null ? String(v) : '');
+        const card = (label, value, color) => `
+          <div style="border:1px solid var(--border-dim); border-radius:var(--radius-md); padding:10px; background:rgba(255,255,255,0.03);">
+            <div style="font-size:0.75rem; color:var(--text-dim);">${esc(label)}</div>
+            <div style="margin-top:4px; font-size:1.05rem; color:${color}; font-family:'Orbitron',sans-serif;">${esc(value)}</div>
+          </div>
+        `;
+        document.getElementById('voiceSummaryCards').innerHTML =
+          card('Severity', String(summary.severity || 'unknown').toUpperCase(), 'var(--accent-cyan)') +
+          card('Confidence', `${((Number(summary.confidence || 0)) * 100).toFixed(1)}%`, 'var(--accent-yellow)') +
+          card('Primary Risk', String(summary.primary_risk_type || 'none'), 'var(--accent-blue)') +
+          card('Duration', `${(Number(summary.duration_seconds || 0)).toFixed(1)}s`, 'var(--accent-green)');
+
+        const timelineHtml = timeline.slice(0, 180).map((p) => {
+          const fs = Math.max(2, Math.round((Number(p.fused_score || 0)) * 80));
+          const ss = Math.max(2, Math.round((Number(p.stress_score || 0)) * 80));
+          const as = Math.max(2, Math.round((Number(p.anomaly_score || 0)) * 80));
+          return `<div title="t=${p.t}s | fused:${(p.fused_score || 0).toFixed(2)}" style="width:4px; height:86px; display:flex; flex-direction:column; justify-content:flex-end;">
+              <div style="height:${as}px; background:#3b82f6; opacity:.55;"></div>
+              <div style="height:${ss}px; background:#f59e0b; opacity:.65;"></div>
+              <div style="height:${fs}px; background:#ef4444; opacity:.8;"></div>
+            </div>`;
+        }).join('');
+        document.getElementById('voiceTimeline').innerHTML = timelineHtml || '<span style="color:var(--text-dim);">No timeline points</span>';
+
+        document.getElementById('voiceEvents').innerHTML = events.length
+          ? events.map((e, i) => `
+              <div style="padding:8px; border:1px solid var(--border-dim); border-radius:8px; margin-bottom:8px;">
+                <div style="color:var(--accent-cyan); font-weight:600;">#${i + 1} ${esc(e.label || e.event_type)}</div>
+                <div style="font-size:0.85rem; color:var(--text-secondary);">${(e.start || 0).toFixed(1)}s-${(e.end || 0).toFixed(1)}s | score ${(Number(e.score || 0) * 100).toFixed(1)}%</div>
+                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">${esc(e.details)}</div>
+              </div>
+            `).join('')
+          : '<span style="color:var(--text-dim);">No significant events</span>';
+
+        document.getElementById('voiceTranscript').innerHTML = transcript.length
+          ? transcript.map((s) => `
+              <div style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span style="color:var(--accent-cyan); font-size:0.8rem;">[${(s.start || 0).toFixed(1)}-${(s.end || 0).toFixed(1)}s]</span>
+                <span style="color:var(--text-secondary); margin-left:6px;">${esc(s.text)}</span>
+              </div>
+            `).join('')
+          : `<span style="color:var(--text-dim);">${esc(summary.transcript_text) || 'Transcript unavailable'}</span>`;
+
+        const recHtml = recs.length ? `<ul style="padding-left: 18px;">${recs.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : '<div>No recommendations</div>';
+        document.getElementById('voiceRecommendations').innerHTML = `
+          ${recHtml}
+          <div style="margin-top:8px; color:var(--text-dim);">${esc(explanation)}</div>
+        `;
+      }
+    }
+    class FileHandler {
+      static init() {
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone.style.borderColor = 'var(--accent-cyan)';
+          uploadZone.style.background = 'rgba(0, 247, 255, 0.05)';
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+          uploadZone.style.borderColor = 'var(--border-bright)';
+          uploadZone.style.background = 'rgba(59, 130, 246, 0.05)';
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone.style.borderColor = 'var(--border-bright)';
+          uploadZone.style.background = 'rgba(59, 130, 246, 0.05)';
+          
+          if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            this.handleFile(fileInput.files[0]);
+          }
+        });
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files.length) {
+            this.handleFile(e.target.files[0]);
+          }
+        });
+        analyzeBtn.addEventListener('click', () => AnalysisEngine.analyze());
+        document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+      }
+      
+      static handleFile(file) {
+        Logger.debug('File selected:', { name: file.name, size: file.size, type: file.type });
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = this.formatFileSize(file.size);
+        document.getElementById('fileInfo').classList.add('active');
+        document.getElementById('fileStatus').textContent = 'Ready for analysis';
+        document.getElementById('fileStatus').style.color = 'var(--accent-green)';
+        document.getElementById('analyzeBtn').disabled = false;
+        AIAssistant.addMessage('ai', `Telemetry file loaded: ${file.name}. Ready for black-box analysis.`);
+      }
+      
+      static formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      
+      static reset() {
+        Logger.debug('Resetting file handler');
+        
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileInfo').classList.remove('active');
+        document.getElementById('analyzeBtn').disabled = true;
+        document.getElementById('progressContainer').style.display = 'none';
+        document.getElementById('analysisStatus').textContent = 'AWAITING DATA';
+        document.getElementById('analysisStatus').className = 'status-value';
+        document.getElementById('analysisOutput').innerHTML = `
+          <div style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 4rem; color: var(--border-dim); margin-bottom: 20px;">
+              <i class="fas fa-satellite"></i>
+            </div>
+            <h3 style="color: var(--text-secondary); margin-bottom: 10px;">
+              Awaiting Telemetry Data
+            </h3>
+            <p style="color: var(--text-dim);">
+              Upload CSV telemetry to generate black-box analysis
+            </p>
+          </div>
+        `;
+        document.getElementById('vizControls').style.display = 'none';
+        if (State.visualization) {
+          State.visualization.reset();
+        }
+        
+        AIAssistant.addMessage('ai', 'Session reset. Ready for new telemetry analysis.');
+      }
+    }
+    class AnalysisEngine {
+      static async analyze() {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files.length) return;
+        
+        const file = fileInput.files[0];
+        Logger.debug('Starting analysis for file:', file.name);
+        State.isAnalyzing = true;
+        document.getElementById('analyzeBtn').disabled = true;
+        document.getElementById('analyzeBtn').innerHTML = '<div class="loading"></div> Analyzing...';
+        document.getElementById('progressContainer').style.display = 'block';
+        document.getElementById('analysisStatus').textContent = 'PROCESSING';
+        document.getElementById('analysisStatus').className = 'status-value processing';
+        this.simulateProgress();
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+          Logger.debug('Sending to backend API');
+          const response = await fetch(`${CONFIG.API_BASE_URL}/api/analyze`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+          }
+          
+          const result = await response.json();
+          Logger.debug('Analysis result received:', result);
+          this.completeProgress();
+          State.currentAnalysis = result;
+          this.displayResults(result);
+          document.getElementById('analysisStatus').textContent = 'COMPLETE';
+          document.getElementById('analysisStatus').className = 'status-value online';
+          if (result.report?.executive_summary?.root_cause) {
+            AIAssistant.addMessage('ai', `Analysis complete. Root cause identified: ${result.report.executive_summary.root_cause}`);
+          } else {
+            AIAssistant.addMessage('ai', `Analysis complete. ${result.analysis_id ? `ID: ${result.analysis_id}` : 'Report generated.'}`);
+          }
+          
+        } catch (error) {
+          Logger.error('Analysis failed:', error);
+          this.handleError(error);
+        } finally {
+          State.isAnalyzing = false;
+          document.getElementById('analyzeBtn').disabled = false;
+          document.getElementById('analyzeBtn').innerHTML = '<i class="fas fa-play"></i> Initiate Analysis';
+        }
+      }
+      
+      static simulateProgress() {
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 15;
+          if (progress > 95) {
+            clearInterval(interval);
+            return;
+          }
+          this.updateProgress(progress);
+        }, 300);
+      }
+      
+      static updateProgress(percent) {
+        const fill = document.getElementById('progressFill');
+        const percentElement = document.getElementById('progressPercent');
+        const statusElement = document.getElementById('progressStatus');
+        
+        fill.style.width = `${percent}%`;
+        percentElement.textContent = `${Math.round(percent)}%`;
+        
+        if (percent < 30) {
+          statusElement.textContent = 'Loading ONNX model...';
+        } else if (percent < 60) {
+          statusElement.textContent = 'Computing anomaly scores...';
+        } else if (percent < 90) {
+          statusElement.textContent = 'Generating causal chains...';
+        }
+      }
+      
+      static completeProgress() {
+        const fill = document.getElementById('progressFill');
+        const percentElement = document.getElementById('progressPercent');
+        const statusElement = document.getElementById('progressStatus');
+        
+        fill.style.width = '100%';
+        percentElement.textContent = '100%';
+        statusElement.textContent = 'Analysis complete';
+        
+        setTimeout(() => {
+          document.getElementById('progressContainer').style.display = 'none';
+        }, 2000);
+      }
+      
+      static displayResults(result) {
+        const report = result.report || {};
+        const analysis = result.analysis || {};
+        document.getElementById('reportId').textContent = report.report_id || result.analysis_id || 'NOEMA-REPORT';
+        const html = this.generateReportHTML(report, analysis);
+        document.getElementById('analysisOutput').innerHTML = html;
+        document.getElementById('vizControls').style.display = 'flex';
+        const visData =
+          report.visualization_3d ||
+          result.visualization_3d ||
+          result.analysis?.visualization_3d ||
+          report.raw_analysis?.visualization_3d;
+
+        if (visData) {
+          if (!State.visualization) {
+            Visualization3D.init();
+          }
+          setTimeout(() => {
+            if (State.visualization && typeof State.visualization.loadData === 'function') {
+              State.visualization.loadData(visData);
+            } else {
+              Logger.error('3D visualization module not initialized');
+            }
+          }, 350);
+        } else {
+          Logger.error('No visualization_3d payload in analysis response');
+        }
+      }
+      
+      static generateReportHTML(report, analysis) {
+        const exec = report.executive_summary || {};
+        const timeline = report.timeline_analysis || {};
+        const health = report.health_analysis || {};
+        const esc = (v) => escapeHtml(v != null ? String(v) : '');
+        return `
+          <div class="report-content">
+            
+            <div style="background: rgba(0, 247, 255, 0.05); border: 1px solid var(--border-dim); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+              <h3 style="color: var(--accent-cyan); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-clipboard"></i> Executive Summary
+              </h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Status</div>
+                  <div style="font-size: 1.1rem; color: var(--text-primary);">${esc(exec.status) || 'ANALYZED'}</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Root Cause</div>
+                  <div style="font-size: 1.1rem; color: var(--accent-red);">${esc(exec.root_cause) || 'Not identified'}</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Confidence</div>
+                  <div style="font-size: 1.1rem; color: var(--accent-cyan);">
+                    ${exec.confidence ? (exec.confidence * 100).toFixed(1) + '%' : 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            
+            <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid var(--border-dim); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+              <h3 style="color: var(--accent-blue); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-history"></i> Timeline Analysis
+              </h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Degradation Start</div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">${esc(timeline.degradation_start) || 'N/A'}</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">First Anomaly</div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">${esc(timeline.first_anomaly_detected) || 'N/A'}</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Data Points</div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">${esc(timeline.total_data_points) || 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+            
+            
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid var(--border-dim); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+              <h3 style="color: var(--accent-green); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-heartbeat"></i> System Health
+              </h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Initial Health</div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">
+                    ${health.initial_health ? health.initial_health.toFixed(1) + '%' : 'N/A'}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Final Health</div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">
+                    ${health.final_health ? health.final_health.toFixed(1) + '%' : 'N/A'}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-dim);">Degradation Rate</div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">
+                    ${health.degradation_rate != null ? esc(health.degradation_rate) : 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            
+            ${report.causal_chain ? `
+            <div style="background: rgba(139, 92, 246, 0.05); border: 1px solid var(--border-dim); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px;">
+              <h3 style="color: var(--accent-purple); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-link"></i> Causal Chain
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${report.causal_chain.map((step, i) => `
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 25px; height: 25px; background: var(--accent-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">${i + 1}</div>
+                    <div style="color: var(--text-secondary);">${esc(step)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
+            
+            
+            ${report.recommendations ? `
+            <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid var(--border-dim); border-radius: var(--radius-md); padding: 20px;">
+              <h3 style="color: var(--accent-yellow); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-lightbulb"></i> Recommendations
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${report.recommendations.map(rec => `
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <i class="fas fa-chevron-right" style="color: var(--accent-yellow); margin-top: 3px;"></i>
+                    <div style="color: var(--text-secondary); flex: 1;">${esc(rec)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
+          </div>
+        `;
+      }
+      
+      static handleError(error) {
+        Logger.error('Analysis error:', error);
+        
+        document.getElementById('progressStatus').textContent = 'Analysis failed';
+        document.getElementById('progressPercent').textContent = '100%';
+        document.getElementById('progressFill').style.background = 'var(--accent-red)';
+        
+        let errorMsg = `Analysis failed: ${error.message}`;
+        if (error.message.includes('localhost') || error.message.includes('network')) {
+          errorMsg += '\n\nMake sure the backend server is running:\n';
+          errorMsg += 'uvicorn main:app --host 0.0.0.0 --port 8000';
+        }
+        
+        AIAssistant.addMessage('ai', errorMsg);
+      }
+    }
+    class Visualization3D {
+      static init() {
+        Logger.debug('Initializing 3D visualization');
+        
+        const container = document.getElementById('three-container');
+        if (!container) {
+          Logger.error('3D container not found');
+          return;
+        }
+        const w = container.clientWidth || container.offsetWidth || 0;
+        const h = container.clientHeight || container.offsetHeight || 0;
+        if (w === 0 || h === 0) {
+          this._initRetries = (this._initRetries || 0) + 1;
+          if (this._initRetries <= 20) {
+            setTimeout(() => Visualization3D.init(), 120);
+          } else {
+            Logger.error('3D init aborted: container size is still 0x0');
+          }
+          return;
+        }
+        this._initRetries = 0;
+        
+        try {
+          if (!this.checkWebGL()) {
+            this.showWebGLError();
+            return;
+          }
+          this.scene = new THREE.Scene();
+          this.scene.background = new THREE.Color(0x030712);
+          const width = Math.max(container.clientWidth || 0, 800);
+          const height = Math.max(container.clientHeight || 0, 400);
+          this.camera = new THREE.PerspectiveCamera(
+            CONFIG.VISUALIZATION.CAMERA.fov,
+            width / height,
+            CONFIG.VISUALIZATION.CAMERA.near,
+            CONFIG.VISUALIZATION.CAMERA.far
+          );
+          this.camera.position.set(30, 20, 30);
+          this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+          this.renderer.setSize(width, height);
+          this.renderer.setPixelRatio(window.devicePixelRatio);
+          this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          container.innerHTML = '';
+          container.appendChild(this.renderer.domElement);
+          if (typeof THREE.OrbitControls === 'function') {
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
+            this.controls.dampingFactor = 0.05;
+          } else {
+            Logger.debug('OrbitControls unavailable, running without camera controls');
+            this.controls = null;
+          }
+          this.setupLighting();
+          this.addStars();
+          this.addEarthBackdrop();
+          this.createSatellite();
+          this.animate();
+          window.addEventListener('resize', () => this.onResize());
+          State.visualization = this;
+          
+          Logger.debug('3D visualization initialized successfully');
+          
+        } catch (error) {
+          Logger.error('Failed to initialize 3D visualization:', error);
+          this.showWebGLError();
+        }
+      }
+      
+      static checkWebGL() {
+        try {
+          const canvas = document.createElement('canvas');
+          return !!(window.WebGLRenderingContext && 
+                   (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+        } catch (e) {
+          return false;
+        }
+      }
+      
+      static showWebGLError() {
+        const container = document.getElementById('three-container');
+        if (container) {
+          container.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--accent-red); margin-bottom: 20px;"></i>
+              <h3 style="color: var(--text-primary); margin-bottom: 10px;">WebGL Not Supported</h3>
+              <p style="color: var(--text-secondary);">Please use a modern browser (Chrome, Firefox, Edge) with WebGL enabled.</p>
+            </div>
+          `;
+        }
+      }
+      
+      static setupLighting() {
+        const ambient = new THREE.AmbientLight(0x1f3250, 0.75);
+        this.scene.add(ambient);
+        
+        const key = new THREE.DirectionalLight(0xe2ebff, 1.15);
+        key.position.set(36, 28, 24);
+        key.castShadow = true;
+        this.scene.add(key);
+
+        const rim = new THREE.DirectionalLight(0x57c8ff, 0.75);
+        rim.position.set(-24, 6, -26);
+        this.scene.add(rim);
+
+        const hemi = new THREE.HemisphereLight(0xbdd8ff, 0x0a1022, 0.45);
+        this.scene.add(hemi);
+      }
+      
+      static addStars() {
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 1500;
+        const positions = new Float32Array(starCount * 3);
+        
+        for (let i = 0; i < starCount * 3; i += 3) {
+          positions[i] = (Math.random() - 0.5) * 500;
+          positions[i + 1] = (Math.random() - 0.5) * 500;
+          positions[i + 2] = (Math.random() - 0.5) * 500;
+        }
+        
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        
+        const starMaterial = new THREE.PointsMaterial({ color: 0xe8f4ff, size: 0.85, sizeAttenuation: true, transparent: true, opacity: 0.9 });
+        
+        this.stars = new THREE.Points(starGeometry, starMaterial);
+        this.scene.add(this.stars);
+      }
+      
+      static addEarthBackdrop() {
+        const earthMaterial = new THREE.MeshPhongMaterial({
+          color: 0x1a4c8f,
+          emissive: 0x07152f,
+          shininess: 18
+        });
+        this.earth = new THREE.Mesh(new THREE.SphereGeometry(15, 36, 28), earthMaterial);
+        this.earth.position.set(-28, -18, -45);
+        this.scene.add(this.earth);
+
+        this.atmosphere = new THREE.Mesh(
+          new THREE.SphereGeometry(15.7, 24, 20),
+          new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.12 })
+        );
+        this.atmosphere.position.copy(this.earth.position);
+        this.scene.add(this.atmosphere);
+      }
+      
+      static createSatellite() {
+        this.satellite = new THREE.Group();
+        this.satellite.userData.baseY = 0;
+        
+        const bodyGeometry = new THREE.BoxGeometry(2.6, 1.9, 3.6);
+        this.bodyMaterial = new THREE.MeshPhongMaterial({ 
+          color: 0x5d6470,
+          shininess: 70,
+          emissive: 0x151d2a
+        });
+        const body = new THREE.Mesh(bodyGeometry, this.bodyMaterial);
+        body.castShadow = true;
+        this.satellite.add(body);
+
+        const busTop = new THREE.Mesh(
+          new THREE.BoxGeometry(2.15, 0.28, 2.9),
+          new THREE.MeshPhongMaterial({ color: 0xa3adba, shininess: 60, emissive: 0x161f30 })
+        );
+        busTop.position.y = 1.1;
+        this.satellite.add(busTop);
+
+        const panelGeometry = new THREE.BoxGeometry(7.2, 0.08, 2.25);
+        const panelMaterial = new THREE.MeshPhongMaterial({ 
+          color: 0x1f77d0,
+          emissive: 0x0c2c56,
+          transparent: true,
+          opacity: 0.9
+        });
+        
+        const leftPanel = new THREE.Mesh(panelGeometry, panelMaterial);
+        leftPanel.position.set(-4.95, 0.05, 0);
+        leftPanel.castShadow = true;
+        this.satellite.add(leftPanel);
+        
+        const rightPanel = new THREE.Mesh(panelGeometry, panelMaterial);
+        rightPanel.position.set(4.95, 0.05, 0);
+        rightPanel.castShadow = true;
+        this.satellite.add(rightPanel);
+
+        const panelGrid = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(7.2, 0.08, 2.25)),
+          new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.35 })
+        );
+        panelGrid.position.copy(leftPanel.position);
+        this.satellite.add(panelGrid);
+        const panelGrid2 = panelGrid.clone();
+        panelGrid2.position.copy(rightPanel.position);
+        this.satellite.add(panelGrid2);
+
+        const antennaMast = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.08, 0.08, 1.4, 18),
+          new THREE.MeshPhongMaterial({ color: 0x9ca3af, shininess: 60 })
+        );
+        antennaMast.position.set(0, 1.65, 0.6);
+        this.satellite.add(antennaMast);
+
+        const dish = new THREE.Mesh(
+          new THREE.SphereGeometry(0.9, 24, 18, 0, Math.PI * 2, 0, Math.PI / 2.3),
+          new THREE.MeshPhongMaterial({ color: 0xd8dee8, shininess: 90, emissive: 0x121926 })
+        );
+        dish.position.set(0, 2.15, 1.15);
+        dish.rotation.x = -Math.PI / 2.1;
+        this.satellite.add(dish);
+
+        const thrusterMaterial = new THREE.MeshPhongMaterial({ color: 0x8a9099, emissive: 0x10151f, shininess: 80 });
+        const thrusterGeom = new THREE.CylinderGeometry(0.14, 0.19, 0.45, 16);
+        for (let i = 0; i < 4; i++) {
+          const thruster = new THREE.Mesh(thrusterGeom, thrusterMaterial);
+          const sx = i < 2 ? -0.95 : 0.95;
+          const sz = i % 2 === 0 ? -1.25 : 1.25;
+          thruster.position.set(sx, -0.95, sz);
+          thruster.rotation.x = Math.PI / 2;
+          this.satellite.add(thruster);
+        }
+
+        const indicatorGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        this.indicatorMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0.8
+        });
+        this.healthIndicator = new THREE.Mesh(indicatorGeometry, this.indicatorMaterial);
+        this.healthIndicator.position.set(0, 2, 0);
+        this.satellite.add(this.healthIndicator);
+        const haloGeometry = new THREE.RingGeometry(2, 2.5, 32);
+        this.haloMaterial = new THREE.MeshBasicMaterial({
+          color: 0xff0000,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0
+        });
+        this.halo = new THREE.Mesh(haloGeometry, this.haloMaterial);
+        this.halo.rotation.x = Math.PI / 2;
+        this.satellite.add(this.halo);
+        
+        this.scene.add(this.satellite);
+      }
+      
+      static addAxes() {
+        const axesHelper = new THREE.AxesHelper(5);
+        this.scene.add(axesHelper);
+      }
+      
+      static loadData(data) {
+        if (!data) {
+          Logger.error('No visualization data provided');
+          return;
+        }
+        
+        Logger.debug('Loading 3D visualization data:', data);
+        this.healthScores = data.health_scores || [];
+        this.animationPath = data.animation_path || [];
+        this.keyMoments = data.key_moments || [];
+        if (this.animationPath.length > 1) {
+          this.createTrajectory(this.animationPath);
+        }
+        this.keyMoments.forEach((moment, i) => {
+          if (moment.index < this.animationPath.length) {
+            this.addKeyMomentMarker(moment, i);
+          }
+        });
+        this.updateVisualizationControls();
+        this.currentIndex = 0;
+        this.isPlaying = false;
+        this.animationSpeed = 0.02;
+      }
+      
+      static createTrajectory(path) {
+        if (this.trajectory) {
+          this.scene.remove(this.trajectory);
+        }
+        
+        const points = path.map(p => new THREE.Vector3(...p));
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        const material = new THREE.LineBasicMaterial({
+          color: 0x3b82f6,
+          transparent: true,
+          opacity: 0.4,
+          linewidth: 2
+        });
+        
+        this.trajectory = new THREE.Line(geometry, material);
+        this.scene.add(this.trajectory);
+      }
+      
+      static addKeyMomentMarker(moment, index) {
+        const position = this.animationPath[moment.index];
+        const geometry = new THREE.SphereGeometry(0.4, 16, 16);
+        const material = new THREE.MeshBasicMaterial({ 
+          color: 0xffff00,
+          transparent: true,
+          opacity: 0.7
+        });
+        
+        const marker = new THREE.Mesh(geometry, material);
+        marker.position.set(...position);
+        this.scene.add(marker);
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(moment.label || `Event ${index + 1}`, canvas.width / 2, canvas.height / 2);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(4, 1, 1);
+        sprite.position.set(position[0], position[1] + 1.5, position[2]);
+        this.scene.add(sprite);
+      }
+      
+      static updateVisualizationControls() {
+        const timeline = document.getElementById('vizTimeline');
+        if (timeline && this.healthScores.length > 0) {
+          timeline.max = this.healthScores.length - 1;
+          timeline.oninput = (e) => {
+            this.currentIndex = parseInt(e.target.value);
+            this.isPlaying = false;
+            this.updateSatellitePosition();
+          };
+        }
+        document.getElementById('vizPlay').onclick = () => {
+          this.isPlaying = (this.animationPath && this.animationPath.length > 1);
+        };
+        
+        document.getElementById('vizPause').onclick = () => {
+          this.isPlaying = false;
+        };
+        
+        document.getElementById('vizReset').onclick = () => {
+          this.currentIndex = 0;
+          this.isPlaying = false;
+          this.updateSatellitePosition();
+        };
+      }
+      
+      static updateSatellitePosition() {
+        if (!this.satellite || !this.animationPath || this.currentIndex >= this.animationPath.length) {
+          return;
+        }
+        
+        const idx = Math.max(0, Math.min(this.animationPath.length - 1, Math.floor(this.currentIndex)));
+        const position = this.animationPath[idx];
+        if (!position) return;
+        this.satellite.position.set(position[0], position[1], position[2]);
+        this.satellite.userData.baseY = position[1];
+        const timeline = document.getElementById('vizTimeline');
+        if (timeline) {
+          timeline.value = idx;
+        }
+        if (idx < this.healthScores.length) {
+          this.updateHealthIndicator(this.healthScores[idx]);
+        }
+      }
+      
+      static updateHealthIndicator(health) {
+        if (!this.indicatorMaterial || !this.haloMaterial) return;
+        
+        let color;
+        let haloOpacity = 0;
+        
+        if (health > 70) {
+          color = new THREE.Color(0x00ff00); // Green
+        } else if (health > 30) {
+          color = new THREE.Color(0xffff00); // Yellow
+          haloOpacity = (70 - health) / 40 * 0.4;
+        } else {
+          color = new THREE.Color(0xff0000); // Red
+          haloOpacity = 0.6 + (30 - health) / 30 * 0.4;
+        }
+        
+        this.indicatorMaterial.color = color;
+        this.haloMaterial.opacity = haloOpacity;
+        this.haloMaterial.color = new THREE.Color(0xff0000);
+        this.halo.scale.x = 1 + haloOpacity * 0.5;
+        this.halo.scale.y = 1 + haloOpacity * 0.5;
+      }
+      
+      static animate() {
+        requestAnimationFrame(() => this.animate());
+        this.phase = (this.phase || 0) + 0.01;
+        if (this.isPlaying && this.animationPath && this.animationPath.length > 1) {
+          this.currentIndex += this.animationSpeed;
+          if (this.currentIndex >= this.animationPath.length) {
+            this.currentIndex = 0;
+          }
+          this.updateSatellitePosition();
+        }
+        if (this.satellite) {
+          this.satellite.rotation.y += CONFIG.VISUALIZATION.SATELLITE.rotationSpeed;
+          this.satellite.position.y = (this.satellite.userData.baseY || 0) + Math.sin(this.phase) * 0.18;
+        }
+        if (this.halo) {
+          this.halo.rotation.z += 0.01;
+        }
+
+        if (this.stars) {
+          this.stars.rotation.y += 0.0003;
+        }
+        if (this.earth) {
+          this.earth.rotation.y += 0.0014;
+        }
+        if (this.atmosphere) {
+          this.atmosphere.rotation.y -= 0.0008;
+        }
+        if (this.controls) {
+          this.controls.update();
+        }
+        if (this.renderer && this.scene && this.camera) {
+          this.renderer.render(this.scene, this.camera);
+        }
+      }
+      
+      static onResize() {
+        const container = document.getElementById('three-container');
+        if (!container || !this.camera || !this.renderer) return;
+        
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+      }
+      
+      static reset() {
+        if (this.trajectory) {
+          this.scene.remove(this.trajectory);
+          this.trajectory = null;
+        }
+        if (this.satellite) {
+          this.satellite.position.set(0, 0, 0);
+        }
+        if (this.indicatorMaterial) {
+          this.indicatorMaterial.color = new THREE.Color(0x00ff00);
+        }
+        
+        if (this.haloMaterial) {
+          this.haloMaterial.opacity = 0;
+        }
+        
+        this.isPlaying = false;
+        this.currentIndex = 0;
+      }
+    }
+    function escapeHtml(str) {
+      if (str == null) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+    class AIAssistant {
+      static init() {
+        Logger.debug('Initializing AI Assistant');
+        document.getElementById('aiToggle').addEventListener('click', () => this.toggle());
+        document.getElementById('aiSend').addEventListener('click', () => this.sendMessage());
+        document.getElementById('aiInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') this.sendMessage();
+        });
+      }
+      
+      static toggle() {
+        State.aiAssistantOpen = !State.aiAssistantOpen;
+        const assistant = document.getElementById('aiAssistant');
+        const icon = document.getElementById('aiToggleIcon');
+        
+        if (State.aiAssistantOpen) {
+          assistant.classList.remove('collapsed');
+          icon.className = 'fas fa-chevron-down';
+        } else {
+          assistant.classList.add('collapsed');
+          icon.className = 'fas fa-chevron-up';
+        }
+      }
+      
+      static addMessage(sender, text) {
+        const messages = document.getElementById('aiMessages');
+        const message = document.createElement('div');
+        message.className = `message ${sender}`;
+        const label = sender === 'ai' ? 'NOEMA Analyst:' : 'You:';
+        message.innerHTML = `<strong>${label}</strong> ${escapeHtml(String(text))}`;
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+      }
+      
+      static async sendMessage() {
+        const input = document.getElementById('aiInput');
+        const question = input.value.trim();
+        
+        if (!question) return;
+        this.addMessage('user', question);
+        input.value = '';
+        
+        try {
+          const response = await fetch(`${CONFIG.API_BASE_URL}/api/agent/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: question,
+              analysis_id: State.currentAnalysis?.analysis_id
+            })
+          });
+          
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          
+          const data = await response.json();
+          this.addMessage('ai', data.answer || 'No response from AI.');
+          
+        } catch (error) {
+          Logger.error('AI query failed:', error);
+          const fallback = this.generateFallbackResponse(question);
+          this.addMessage('ai', fallback);
+        }
+      }
+      
+      static generateFallbackResponse(question) {
+        const q = question.toLowerCase();
+        const report = State.currentAnalysis?.report;
+        
+        if (!report) {
+          return 'Run an analysis first in any domain (Satellite, Rocket, Spacesuit, or Voice), then ask for insights.';
+        }
+        
+        if (q.includes('root cause') || q.includes('what happened')) {
+          return `Based on the analysis, the root cause appears to be: ${report.executive_summary?.root_cause || 'undetermined'}.`;
+        } else if (q.includes('health') || q.includes('status')) {
+          const health = report.health_analysis;
+          return `System health degraded from ${health?.initial_health || 'N/A'}% to ${health?.final_health || 'N/A'}%.`;
+        } else if (q.includes('timeline') || q.includes('when')) {
+          const timeline = report.timeline_analysis;
+          return `Degradation started at ${timeline?.degradation_start || 'N/A'}, with first anomaly at ${timeline?.first_anomaly_detected || 'N/A'}.`;
+        } else {
+          return 'I can help explain the analysis results. Try asking about root cause, system health, or timeline.';
+        }
+      }
+    }
+
+    class LiquidGlassEngine {
+      static init() {
+        this.turbulence = document.getElementById('liquidTurbulence');
+        this.displacement = document.getElementById('liquidDisplacement');
+        if (!this.turbulence || !this.displacement) return;
+
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          this.turbulence.setAttribute('baseFrequency', '0.0075 0.011');
+          this.displacement.setAttribute('scale', '16');
+          return;
+        }
+
+        let t = 0;
+        const animate = () => {
+          t += 0.016;
+          const freqX = (0.0058 + Math.sin(t * 0.85) * 0.0019).toFixed(4);
+          const freqY = (0.0088 + Math.cos(t * 1.05) * 0.0021).toFixed(4);
+          const scale = (24 + Math.sin(t * 1.25) * 7).toFixed(2);
+          this.turbulence.setAttribute('baseFrequency', `${freqX} ${freqY}`);
+          this.displacement.setAttribute('scale', scale);
+          requestAnimationFrame(animate);
+        };
+        animate();
+      }
+    }
+    class StatusUpdater {
+      static init() {
+        Logger.debug('Initializing status updater');
+        this.update();
+        setInterval(() => this.update(), 30000);
+      }
+      
+      static async update() {
+        try {
+          const now = new Date();
+          document.getElementById('lastUpdate').textContent = 
+            now.toISOString().split('T')[1].split('.')[0] + ' UTC';
+          await this.checkBackend();
+          
+        } catch (error) {
+          Logger.error('Status update failed:', error);
+        }
+      }
+      
+      static async checkBackend() {
+        try {
+          const response = await fetch(`${CONFIG.API_BASE_URL}/health`);
+          const modelStatus = document.getElementById('modelStatus');
+          
+          if (response.ok) {
+            modelStatus.textContent = 'ONLINE';
+            modelStatus.className = 'status-value online';
+          } else {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } catch (error) {
+          Logger.error('Backend check failed:', error);
+          const modelStatus = document.getElementById('modelStatus');
+          modelStatus.textContent = 'OFFLINE';
+          modelStatus.className = 'status-value offline';
+          if (!State.isAnalyzing) {
+            AIAssistant.addMessage('ai', 
+              '⚠️ Backend server is offline. Please ensure the server is running on port 8000.'
+            );
+          }
+        }
+      }
+    }
+    class NOEMAApp {
+      static init() {
+        Logger.debug('Initializing NOEMA application');
+        Navigation.init();
+        AnalysisDomains.init();
+        SpacesuitModule.init();
+        VoiceModule.init();
+        FileHandler.init();
+        AIAssistant.init();
+        LiquidGlassEngine.init();
+        StatusUpdater.init();
+        if (typeof THREE !== 'undefined') {
+          Logger.debug('Three.js loaded. 3D init deferred until Analysis page is active.');
+        } else {
+          Logger.error('Three.js not loaded');
+        }
+        this.addConstellationEffects();
+        
+        Logger.debug('NOEMA application initialized successfully');
+      }
+      
+      static addConstellationEffects() {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach(star => {
+          star.addEventListener('click', () => {
+            star.style.animation = 'none';
+            star.style.transform = 'scale(2)';
+            star.style.opacity = '1';
+            
+            setTimeout(() => {
+              star.style.animation = 'twinkle 3s infinite alternate';
+              star.style.transform = 'scale(1)';
+            }, 300);
+          });
+        });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      NOEMAApp.init();
+    });
+    window.addEventListener('error', (event) => {
+      Logger.error('Global error:', event.error);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      Logger.error('Unhandled promise rejection:', event.reason);
+    });
+  </script>
+</body>
+</html>
+
+
